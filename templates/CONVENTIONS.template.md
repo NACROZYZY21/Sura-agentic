@@ -42,3 +42,12 @@ Setiap asisten AI yang membaca repositori ini WAJIB mematuhi aturan mutlak berik
 - Hapus semua AI commit co-authored trailers (misal: `Co-authored-by: Cursor`).
 - Rebase onto main/master sebelum PR.
 - Squash menjadi 1 commit rapi per PR.
+
+### D. Standar Wajib Label Pull Request
+- `enhancement`: fitur baru atau perbaikan peningkatan (improvement)
+- `bug`: perbaikan bug yang terjadi di Production
+- `defect`: perbaikan bug yang terjadi di Staging (belum ke Production)
+- `dependencies`: pembaruan dependensi / library / package
+- `documentation`: pull request khusus dokumentasi
+
+> 💡 Gunakan: \`gh pr create --label "enhancement" ...\`
