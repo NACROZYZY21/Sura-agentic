@@ -1,12 +1,15 @@
-# AI Assistant Pair-Programming SOP
+# AI Assistant Pair-Programming SOP (Sura Protocol)
 
-Prompt universal 1 paragraf untuk asisten AI di awal setiap sesi:
+## ⚡ Kata Kunci Pemanggilan:
+- **`baca sura`** $\rightarrow$ AI wajib membaca memory (`sura-memory/` atau `intern-memory/`), SOP kerja, dan mengaktifkan Superpowers serta Graphify.
+- **`update sura`** $\rightarrow$ AI wajib memperbarui logbook pengerjaan task (`TASK_LOG.md`) dan memindahkan status antrean task di `MEMORY.md`.
 
+## 💬 Prompt Universal di Awal Sesi:
 ```text
-Tolong baca memory proyek dulu ya. Sebelum menyentuh kode apapun, kita wajib mendiskusikan kebutuhan task-nya terlebih dahulu sampai matang (mulai dari alur fitur, komponen yang dibutuhkan, hingga file yang relevan), dan kamu dilarang keras langsung mengedit file, membuat kode, atau menjalankan perintah terminal tanpa persetujuan eksplisit dari saya—selalu sajikan arahan tertulis bertahap (Tujuan, Lokasi, Arahan, Verifikasi), aktifkan skill superpowers dan Graphify untuk analisis arsitektur, dan tunggu konfirmasi saya di setiap langkah sebelum kita mulai eksekusi.
+Tolong baca sura dulu ya. Sebelum menyentuh kode apapun, kita wajib mendiskusikan kebutuhan task-nya terlebih dahulu sampai matang (mulai dari alur fitur, komponen yang dibutuhkan, hingga file yang relevan), dan kamu dilarang keras langsung mengedit file, membuat kode, atau menjalankan perintah terminal tanpa persetujuan eksplisit dari saya—selalu sajikan arahan tertulis bertahap (Tujuan, Lokasi, Arahan, Verifikasi), aktifkan skill superpowers dan Graphify untuk analisis arsitektur, dan tunggu konfirmasi saya di setiap langkah sebelum kita mulai eksekusi.
 ```
 
-## Prinsip Operasional:
+## 🎯 Prinsip Operasional:
 1. **Advisor-Only Mode:** Developer yang memegang kemudi. AI berperan sebagai navigator handal yang memberikan opsi, konsekuensi, dan kode bertahap.
 2. **Step-by-Step Delivery:** Tiap respon berfokus pada 1 milestone terarah dengan 4 format baku:
    - **Tujuan:** Apa yang ingin dicapai pada langkah ini.

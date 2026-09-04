@@ -43,7 +43,7 @@ bash ~/Sura-agentic/install.sh
 ```
 
 **Selesai!** Script akan otomatis:
-* ✅ Menyiapkan folder `dev-memory/` beserta 3 template dokumennya.
+* ✅ Menyiapkan folder `sura-memory/` beserta 3 template dokumennya.
 * ✅ Memasang filter ignore token universal (`.ignore`, `.cursorignore`, `.geminiignore`).
 * ✅ Mengonfigurasi rule AI otomatis untuk Cursor dan Gemini/Antigravity.
 * ✅ Mengamankan seluruh konfigurasi ke `.git/info/exclude` (**100% aman dari PR / commit tim**).
@@ -56,13 +56,13 @@ Cukup ingat **2 kata kunci**:
 
 ### 🟢 1. Di Awal Sesi Chat
 Ketik ke AI:
-> **`"Baca dev-memory ya"`**
+> **`"Baca sura-memory ya"`**
 
 *AI akan langsung membaca memori, menyalakan Superpowers & Graphify, dan mengajak diskusi kebutuhan sebelum menulis kode.*
 
 ### 🔴 2. Saat Task Selesai & PR Di-merge
 Ketik ke AI:
-> **`"Update dev-memory ya"`**
+> **`"Update sura-memory ya"`**
 
 *AI akan menandai status task menjadi `Done`, mencatat link PR, dan menyiapkan task berikutnya di daftar antrean.*
 
