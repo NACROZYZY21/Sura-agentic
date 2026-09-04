@@ -1,0 +1,49 @@
+# ==========================================
+# 1. Dependencies & Large Modules (Highest Token Consumption)
+# ==========================================
+node_modules/
+.npm-cache/
+vendor/
+.venv/
+env/
+__pycache__/
+
+# ==========================================
+# 2. Compiler Cache & Temporary Dirs
+# ==========================================
+.gocache/
+.go-cache/
+.gomodcache/
+.gotmp/
+.go-tmp/
+.tmp/
+.cache/
+
+# ==========================================
+# 3. Logs, Dumps, Audit & Test Outputs
+# ==========================================
+*.log
+*-audit.json
+coverage.xml
+*.out
+*.test
+*.prof
+
+# ==========================================
+# 4. Build Artifacts & Output Dirs
+# ==========================================
+dist/
+build/
+.next/
+.turbo/
+.output/
+.nuxt/
+out/
+
+# ==========================================
+# 5. Heavy Backups & Large Dumps
+# ==========================================
+graphify-out.*-backup-*/
+*.tar.gz
+*.zip
+*.dump
