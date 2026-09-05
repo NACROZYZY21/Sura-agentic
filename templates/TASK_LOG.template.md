@@ -1,6 +1,12 @@
 # Task Logbook & Detailed History
 
-Dokumentasi detail dari setiap task yang dikerjakan. Format per entri:
+Dokumentasi detail dari setiap task yang dikerjakan.
+
+> ⚠️ **Batas ukuran:** simpan hanya task aktif + 2 task terakhir di file ini.
+> Saat `update sura`, pindahkan entri Done yang lebih lama ke
+> `TASK_LOG.archive.md` — arsip tidak dibaca kecuali diminta eksplisit.
+
+Format per entri:
 
 ---
 
