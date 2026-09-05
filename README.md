@@ -45,8 +45,10 @@ bash ~/Sura-agentic/install.sh
 **Selesai!** Script akan otomatis:
 * ✅ Menyiapkan folder `sura-memory/` beserta 3 template dokumennya.
 * ✅ Memasang filter ignore token universal (`.ignore`, `.cursorignore`, `.geminiignore`).
-* ✅ Mengonfigurasi rule AI otomatis untuk Cursor dan Gemini/Antigravity.
+* ✅ Mengonfigurasi rule AI otomatis untuk Cursor, Gemini/Antigravity, dan Claude Code.
 * ✅ Mengamankan seluruh konfigurasi ke `.git/info/exclude` (**100% aman dari PR / commit tim**).
+
+> 🛡️ Kalau proyek sudah punya `CLAUDE.md` milik tim, installer **tidak menimpanya** — rule ditulis ke `CLAUDE.local.md`.
 
 ---
 
@@ -56,13 +58,13 @@ Cukup ingat **2 kata kunci**:
 
 ### 🟢 1. Di Awal Sesi Chat
 Ketik ke AI:
-> **`"Baca sura-memory ya"`**
+> **`"baca sura"`**
 
 *AI akan langsung membaca memori, menyalakan Superpowers & Graphify, dan mengajak diskusi kebutuhan sebelum menulis kode.*
 
 ### 🔴 2. Saat Task Selesai & PR Di-merge
 Ketik ke AI:
-> **`"Update sura-memory ya"`**
+> **`"update sura"`**
 
 *AI akan menandai status task menjadi `Done`, mencatat link PR, dan menyiapkan task berikutnya di daftar antrean.*
 
@@ -71,20 +73,34 @@ Ketik ke AI:
 ## 📁 Struktur Repositori
 
 ```text
-agentic-dev-kit/
+Sura-agentic/
 ├── install.sh                  # Installer 1-klik untuk proyek apapun
 ├── README.md                   # Dokumentasi resmi
-├── templates/
-│   ├── MEMORY.template.md      # Template whiteboard harian & kamus domain
-│   ├── TASK_LOG.template.md    # Template logbook pengerjaan task detail
-│   └── CONVENTIONS.template.md # Template aturan koding & SOP hemat token
-├── rules/
-│   ├── ai-sop.md               # Prompt SOP pair-programming universal
+├── rules/                      # UNIVERSAL — sama di semua proyek
+│   ├── SOUL.md                 # Identitas AI, 5 prinsip, kata kunci pemanggilan
+│   ├── RULES.md                # Wajib Selalu / Dilarang Keras + format langkah
+│   ├── token-protocol.md       # Aturan hemat token
 │   ├── graphify.md             # Panduan protokol knowledge graph
 │   └── superpowers.md          # Panduan integrasi superpowers
+├── templates/                  # PER-PROYEK — jadi isi sura-memory/
+│   ├── MEMORY.template.md      # Task aktif, batasan proyek, kamus domain
+│   ├── TASK_LOG.template.md    # Logbook pengerjaan task detail
+│   └── CONVENTIONS.template.md # Arsitektur, perintah, & konvensi git proyek
 └── ignore/
     └── .ignore-template        # Filter universal pemblokir sampah token
 ```
+
+### 🧭 Prinsip Penataan: Satu Fakta, Satu Tempat
+
+| Lapis | Isi | Berubah | Tinggal di |
+|---|---|---|---|
+| Identitas | siapa AI, prinsip dasar | ~tidak pernah | `rules/` → auto-load harness |
+| Aturan | boleh / tidak boleh | jarang | `rules/` → auto-load harness |
+| Konteks proyek | arsitektur, test, git | tiap proyek | `sura-memory/CONVENTIONS.md` |
+| Memori kerja | task, batasan, glossary | tiap hari | `sura-memory/MEMORY.md` |
+| Riwayat | logbook | tiap task | `sura-memory/TASK_LOG.md` |
+
+> Aturan operasional AI **hanya** ada di `rules/`. `CONVENTIONS.md` tidak boleh menduplikasinya.
 
 ---
 

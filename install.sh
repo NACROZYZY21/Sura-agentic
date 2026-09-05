@@ -43,18 +43,40 @@ cp "$SCRIPT_DIR/ignore/.ignore-template" "$TARGET_FULL_PATH/.cursorignore"
 cp "$SCRIPT_DIR/ignore/.ignore-template" "$TARGET_FULL_PATH/.geminiignore"
 echo "  ✅ Deployed token ignore filters: .ignore, .cursorignore, .geminiignore"
 
-# 3. Setup AI Rules for Cursor & Gemini
-mkdir -p "$TARGET_FULL_PATH/.gemini/rules"
-cat "$SCRIPT_DIR/rules/ai-sop.md" "$SCRIPT_DIR/rules/graphify.md" "$SCRIPT_DIR/rules/superpowers.md" > "$TARGET_FULL_PATH/.gemini/rules/agentic-sop.md"
+# 3. Setup AI Rules for Cursor, Gemini & Claude Code
+RULE_FILES=(
+  "$SCRIPT_DIR/rules/SOUL.md"
+  "$SCRIPT_DIR/rules/RULES.md"
+  "$SCRIPT_DIR/rules/token-protocol.md"
+  "$SCRIPT_DIR/rules/graphify.md"
+  "$SCRIPT_DIR/rules/superpowers.md"
+)
 
+mkdir -p "$TARGET_FULL_PATH/.gemini/rules"
+cat "${RULE_FILES[@]}" > "$TARGET_FULL_PATH/.gemini/rules/agentic-sop.md"
+
+# Cursor butuh frontmatter agar rule benar-benar auto-apply
 mkdir -p "$TARGET_FULL_PATH/.cursor/rules"
-cat "$SCRIPT_DIR/rules/ai-sop.md" "$SCRIPT_DIR/rules/graphify.md" "$SCRIPT_DIR/rules/superpowers.md" > "$TARGET_FULL_PATH/.cursor/rules/agentic-sop.mdc"
-echo "  ✅ Configured AI Rules for Gemini & Cursor"
+{
+  printf -- '---\ndescription: Sura Protocol - SOP pair-programming\nalwaysApply: true\n---\n\n'
+  cat "${RULE_FILES[@]}"
+} > "$TARGET_FULL_PATH/.cursor/rules/agentic-sop.mdc"
+
+# Claude Code membaca CLAUDE.md di root. Jangan pernah menimpa milik tim.
+if [ -f "$TARGET_FULL_PATH/CLAUDE.md" ]; then
+  CLAUDE_FILE="CLAUDE.local.md"
+  echo "  ⚠️  CLAUDE.md sudah ada (kemungkinan milik tim) → menulis ke CLAUDE.local.md"
+else
+  CLAUDE_FILE="CLAUDE.md"
+fi
+cat "${RULE_FILES[@]}" > "$TARGET_FULL_PATH/$CLAUDE_FILE"
+
+echo "  ✅ Configured AI Rules for Gemini, Cursor & Claude Code ($CLAUDE_FILE)"
 
 # 4. Protect Everything in Local Git Exclude (Zero Risk of PR Leakage)
 if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
   GIT_EXCLUDE="$TARGET_FULL_PATH/.git/info/exclude"
-  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" ".gemini/rules/" ".cursor/rules/"; do
+  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" ".gemini/rules/" ".cursor/rules/" "$CLAUDE_FILE"; do
     if ! grep -qxF "$pattern" "$GIT_EXCLUDE" 2>/dev/null; then
       echo "$pattern" >> "$GIT_EXCLUDE"
     fi
@@ -64,4 +86,4 @@ fi
 
 echo ""
 echo "🎉 Sura-agentic successfully installed!"
-echo "👉 Buka sesi chat AI lo dan panggil: \"Baca sura-memory ya\""
+echo "👉 Buka sesi chat AI lo dan panggil: \"baca sura\""

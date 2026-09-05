@@ -1,6 +1,6 @@
 # Project Memory & Quick Context
 
-> **Dokumentasi pribadi developer** — disimpan di `dev-memory/` (gitignored).
+> **Dokumentasi pribadi developer** — disimpan di `sura-memory/` (di-exclude lokal).
 > Single source of truth untuk konteks instan asisten AI.
 
 Terakhir diperbarui: **{{DATE}}**
@@ -19,6 +19,17 @@ Terakhir diperbarui: **{{DATE}}**
 - Deskripsi: {{TASK_BRIEF_DESCRIPTION}}
 - Fokus: {{TASK_FOCUS}}
 - Target: {{TASK_TARGET}}
+
+---
+
+## 🚧 Batasan Proyek (Constraints)
+
+> Hal yang **TIDAK boleh** dilakukan di repo ini. Isi begitu ketemu —
+> ini konteks yang paling mahal kalau hilang antar sesi.
+
+- {{CONSTRAINT_1}}  <!-- cth: jangan pakai axios, pakai wrapper fetch internal -->
+- Folder terlarang disentuh: {{FORBIDDEN_PATHS}}
+- Perintah terlarang dijalankan: {{FORBIDDEN_COMMANDS}}
 
 ---
 
