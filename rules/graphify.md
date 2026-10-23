@@ -1,15 +1,20 @@
 # Graphify Knowledge Graph Protocol
 
-Saat repositori memiliki folder `graphify-out/` atau tools MCP Graphify terpasang:
+Saat repositori memiliki folder `graphify-out/` atau MCP server `graphify` aktif:
 
-## Aturan Eksplorasi Arsitektur:
-1. **Prioritaskan Subgraph daripada Grep Raw:**
-   - Gunakan `query_graph` atau CLI `graphify query "<pertanyaan>"` untuk mencari pemahaman arsitektur atau alur kode.
-   - Gunakan `shortest_path` untuk menelusuri relasi langsung antara komponen A dan komponen B.
-   - Gunakan `get_node` / `get_neighbors` untuk memeriksa fungsi tertentu tanpa perlu membuka seluruh file.
-2. **Kapan Graphify Digunakan?**
-   - Di awal pengerjaan task baru saat fase diskusi requirement.
-   - Saat perlu mengecek dampak perubahan fungsi (*impact analysis*) terhadap file lain.
-3. **Kapan Graphify Diperbarui?**
-   - Jalankan `graphify update .` hanya saat ada refactor arsitektur besar atau file baru bertambah dalam jumlah signifikan.
-   - Jangan re-index di setiap commit kecil untuk menghemat waktu komputasi.
+## 1. Aturan Eksplorasi Arsitektur & Blast Radius
+- **Prioritaskan Subgraph daripada Grep Mentah:**
+  - Gunakan tool MCP `query_graph` atau CLI `graphify query "<pertanyaan>"` untuk memetakan alur fitur dan arsitektur modul.
+  - Gunakan `shortest_path` untuk melacak jalur pemanggilan antara komponen A (misal Handler/UI) dan komponen B (misal Repository/API).
+  - Gunakan `get_node` dan `get_neighbors` untuk memeriksa dependensi fungsi/file sebelum mengisi bagian **Blast Radius** di `TRD` dan `DESIGN_BEFORE_CODE.md`.
+  - Gunakan `god_nodes` atau `get_community` untuk memahami modul inti proyek baru secara instan.
+
+## 2. Kapan Graphify Wajib Dipakai?
+- Di awal sesi saat menjalankan **`baca sura`** atau **`/design`** untuk mengidentifikasi file yang wajib disentuh vs tidak boleh disentuh.
+- Saat menyusun bagian **Blast Radius & Layer Design** di dalam dokumen **TRD**.
+- Saat melakukan *impact analysis* sebelum merombak fungsi/tipe yang dipakai bersama.
+
+## 3. Kapan Graphify Diperbarui?
+- Jika proyek belum memiliki `graphify-out/graph.json`, tawarkan inisialisasi cepat atau jalankan ekstraksi AST Graphify.
+- Jalankan pembaruan incremental (`graphify --update` / `graphify update .`) hanya saat ada penambahan modul baru atau refactor arsitektur yang signifikan — jangan re-index di setiap edit kecil agar tetap cepat dan hemat komputasi.
+

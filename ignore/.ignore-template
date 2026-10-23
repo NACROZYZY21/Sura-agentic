@@ -23,6 +23,7 @@ __pycache__/
 # 3. Logs, Dumps, Audit & Test Outputs
 # ==========================================
 *.log
+logs-server/
 *-audit.json
 coverage.xml
 *.out
@@ -41,9 +42,10 @@ build/
 out/
 
 # ==========================================
-# 5. Heavy Backups & Large Dumps
+# 5. Heavy Backups, Cache & Large Dumps
 # ==========================================
 graphify-out.*-backup-*/
+graphify-out/cache/
 *.tar.gz
 *.zip
 *.dump
