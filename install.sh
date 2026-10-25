@@ -198,6 +198,11 @@ for ignore_file in ".ignore" ".cursorignore" ".geminiignore"; do
     echo "  ⏭️  $ignore_file sudah ada → dilewati (kustomisasi kamu aman)"
   else
     cp "$SCRIPT_DIR/ignore/.ignore-template" "$TARGET_FULL_PATH/$ignore_file"
+    # Arsip hanya disembunyikan dari pencarian (ripgrep); .cursorignore/.geminiignore
+    # akan memblokir akses total, padahal arsip harus tetap bisa dibuka saat diminta.
+    if [ "$ignore_file" = ".ignore" ]; then
+      printf "\n# Sura archive (dibaca hanya saat diminta)\nsura-memory/TRD/archive/\n" >> "$TARGET_FULL_PATH/$ignore_file"
+    fi
     echo "  ✅ Created: $ignore_file"
   fi
 done
@@ -259,9 +264,21 @@ else
 fi
 build_inline_payload > "$TARGET_FULL_PATH/$GEMINI_FILE"
 
+# File rule milik tim (tanpa marker) dengan nama yang sama tidak pernah ditimpa.
+pick_rule_file() {
+  local dir="$1" name="$2" fallback="$3"
+  if [ -f "$TARGET_FULL_PATH/$dir/$name" ] && ! grep -q "SURA-AGENTIC-AUTO-GENERATED" "$TARGET_FULL_PATH/$dir/$name" 2>/dev/null; then
+    echo "  ⚠️  $dir/$name milik tim sudah ada → menulis ke $dir/$fallback" >&2
+    echo "$dir/$fallback"
+  else
+    echo "$dir/$name"
+  fi
+}
+
 # Antigravity membaca .agents/rules/ (plural)
 mkdir -p "$TARGET_FULL_PATH/.agents/rules"
-build_inline_payload > "$TARGET_FULL_PATH/.agents/rules/agentic-sop.md"
+AGENTS_FILE="$(pick_rule_file .agents/rules agentic-sop.md sura-agentic-sop.md)"
+build_inline_payload > "$TARGET_FULL_PATH/$AGENTS_FILE"
 
 # Bersihkan jalur lama yang tidak pernah dibaca tool manapun
 if [ -f "$TARGET_FULL_PATH/.gemini/rules/agentic-sop.md" ]; then
@@ -272,10 +289,11 @@ fi
 
 # Cursor butuh frontmatter agar rule benar-benar auto-apply
 mkdir -p "$TARGET_FULL_PATH/.cursor/rules"
+CURSOR_FILE="$(pick_rule_file .cursor/rules agentic-sop.mdc sura-agentic-sop.mdc)"
 {
   printf -- '---\ndescription: Sura Protocol - SOP pair-programming (Scope: %s, Test: %s)\nalwaysApply: true\n---\n\n' "$PROJECT_SCOPE" "$TEST_MODE"
   build_inline_payload
-} > "$TARGET_FULL_PATH/.cursor/rules/agentic-sop.mdc"
+} > "$TARGET_FULL_PATH/$CURSOR_FILE"
 
 # Claude Code membaca CLAUDE.md / CLAUDE.local.md di root. Jangan pernah menimpa milik tim.
 if [ -f "$TARGET_FULL_PATH/CLAUDE.md" ] && ! grep -q "SURA-AGENTIC-AUTO-GENERATED" "$TARGET_FULL_PATH/CLAUDE.md" 2>/dev/null; then
@@ -294,7 +312,13 @@ echo "  ✅ Configured AI Rules → $CLAUDE_FILE, .claude/skills/, $GEMINI_FILE,
 # ------------------------------------------------------------------------------
 if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
   GIT_EXCLUDE="$TARGET_FULL_PATH/.git/info/exclude"
-  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" ".agents/rules/" ".cursor/rules/" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}"; do
+  # Versi lama meng-exclude seluruh folder rule, sehingga rule tim baru ikut tersembunyi.
+  if [ -f "$GIT_EXCLUDE" ] && grep -qxE '\.(agents|cursor)/rules/' "$GIT_EXCLUDE"; then
+    grep -vxE '\.(agents|cursor)/rules/' "$GIT_EXCLUDE" > "$GIT_EXCLUDE.tmp" || true
+    mv "$GIT_EXCLUDE.tmp" "$GIT_EXCLUDE"
+    echo "  🧹 Exclude lama .agents/rules/ & .cursor/rules/ diganti per file"
+  fi
+  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" "$AGENTS_FILE" "$CURSOR_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}"; do
     if [ -n "$pattern" ] && ! grep -qxF "$pattern" "$GIT_EXCLUDE" 2>/dev/null; then
       echo "$pattern" >> "$GIT_EXCLUDE"
     fi

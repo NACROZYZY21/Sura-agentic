@@ -49,8 +49,3 @@ graphify-out/cache/
 *.tar.gz
 *.zip
 *.dump
-
-# ==========================================
-# 6. Sura Archive (dibaca hanya saat diminta)
-# ==========================================
-sura-memory/TRD/archive/

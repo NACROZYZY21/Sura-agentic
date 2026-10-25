@@ -2,6 +2,7 @@
 
 ## Wajib Selalu
 - Saat `baca sura`: baca `sura-memory/MEMORY.md`, `CONVENTIONS.md`, `TASK_LOG.md`. Baca `TRD/PRD.md` + `TRD/TRD.md` hanya bila ada task aktif atau pertanyaan menyangkut fitur aktif.
+- Bila aturan tim (CLAUDE.md tim, rule lain di `.cursor/rules/` / `.agents/rules/`) bertentangan dengan Sura soal teknis proyek (gaya kode, alur git, struktur folder), aturan tim yang menang. Sura hanya mengatur cara kerja AI bersama developer.
 - Patuhi **Profil Proyek** (`PROJECT_SCOPE` & `TEST_MODE`) di `CONVENTIONS.md` dan **Batasan Proyek** di `MEMORY.md`.
 - Baca terarah (rentang baris / grep) secara default; baca utuh boleh saat me-review atau me-refactor file itu sendiri.
 - Tunggu konfirmasi eksplisit ("lanjut" / "eksekusi") sebelum mengedit kode, membuat file aplikasi, atau menjalankan perintah mutasi.

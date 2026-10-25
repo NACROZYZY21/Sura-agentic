@@ -80,7 +80,9 @@ grep -q 'superpowers:' "$TEST_DIR_1/CLAUDE.md"
 for f in GEMINI.md .agents/rules/agentic-sop.md .cursor/rules/agentic-sop.mdc; do
   if grep -q 'superpowers:' "$TEST_DIR_1/$f"; then echo "  ❌ [FAIL] $f menyebut superpowers:"; exit 1; fi
 done
-grep -q 'sura-memory/TRD/archive/' "$TEST_DIR_1/GEMINI.md"
+for marker in 'Siklus Hidup "Satu Fitur Aktif"' 'Peta Folder `sura-memory/`' 'Graphify Knowledge Graph Protocol'; do
+  grep -qF "$marker" "$TEST_DIR_1/GEMINI.md" || { echo "  ❌ [FAIL] isi skill tidak ter-inline: $marker"; exit 1; }
+done
 if grep -q '^name: sura-' "$TEST_DIR_1/GEMINI.md"; then echo "  ❌ [FAIL] frontmatter skill ikut ter-inline"; exit 1; fi
 [ "$(head -1 "$TEST_DIR_1/.cursor/rules/agentic-sop.mdc")" = "---" ]
 grep -q 'alwaysApply: true' "$TEST_DIR_1/.cursor/rules/agentic-sop.mdc"
@@ -88,6 +90,15 @@ grep -q 'alwaysApply: true' "$TEST_DIR_1/.cursor/rules/agentic-sop.mdc"
 # Verify archive dir & ignore entry
 [ -d "$TEST_DIR_1/sura-memory/TRD/archive" ]
 grep -qxF 'sura-memory/TRD/archive/' "$TEST_DIR_1/.ignore"
+for f in .cursorignore .geminiignore; do
+  if grep -q 'sura-memory/TRD/archive/' "$TEST_DIR_1/$f"; then echo "  ❌ [FAIL] $f memblokir arsip"; exit 1; fi
+done
+# Exclude only Sura's own rule files, never whole team folders
+for pat in '.cursor/rules/' '.agents/rules/'; do
+  if grep -qxF "$pat" "$TEST_DIR_1/.git/info/exclude"; then echo "  ❌ [FAIL] seluruh folder $pat di-exclude"; exit 1; fi
+done
+grep -qxF '.cursor/rules/agentic-sop.mdc' "$TEST_DIR_1/.git/info/exclude"
+grep -qxF '.agents/rules/agentic-sop.md' "$TEST_DIR_1/.git/info/exclude"
 echo "  ✅ [PASS] Payload per tool (CLAUDE.md ramping, skill terpasang, inline untuk tool lain)"
 
 # Verify zero git leakage (excluding dummy go.mod)
@@ -102,7 +113,11 @@ echo "  ✅ [PASS] Profile (backend + no-test), full sura-memory tree, and zero 
 
 # Re-run upgrade: old monolithic CLAUDE.md gets replaced, excludes not duplicated
 { echo "<!-- SURA-AGENTIC-AUTO-GENERATED -->"; for i in $(seq 1 500); do echo "old rule line $i"; done; } > "$TEST_DIR_1/CLAUDE.md"
+printf ".agents/rules/\n.cursor/rules/\n" >> "$TEST_DIR_1/.git/info/exclude"
 bash "$INSTALLER" "$TEST_DIR_1" --scope backend --test no-test --no-deps >/dev/null
+for pat in '.cursor/rules/' '.agents/rules/'; do
+  if grep -qxF "$pat" "$TEST_DIR_1/.git/info/exclude"; then echo "  ❌ [FAIL] exclude lama $pat tidak dibersihkan saat upgrade"; exit 1; fi
+done
 [ "$(wc -l < "$TEST_DIR_1/CLAUDE.md")" -le 80 ] || { echo "  ❌ [FAIL] re-run tidak meramping CLAUDE.md lama"; exit 1; }
 [ "$(grep -cxF 'sura-memory/' "$TEST_DIR_1/.git/info/exclude")" -eq 1 ] || { echo "  ❌ [FAIL] exclude dobel"; exit 1; }
 echo "  ✅ [PASS] Re-run upgrade dari payload lama: CLAUDE.md ramping, exclude tidak dobel"
@@ -114,7 +129,10 @@ git -C "$TEST_DIR_2" init -q
 echo "# Team Claude Rules" > "$TEST_DIR_2/CLAUDE.md"
 echo "# Team Gemini Rules" > "$TEST_DIR_2/GEMINI.md"
 echo "custom_ignore_dir/" > "$TEST_DIR_2/.ignore"
-mkdir -p "$TEST_DIR_2/.claude/skills/team-skill"
+mkdir -p "$TEST_DIR_2/.claude/skills/team-skill" "$TEST_DIR_2/.cursor/rules" "$TEST_DIR_2/.agents/rules"
+echo "team cursor rule" > "$TEST_DIR_2/.cursor/rules/team.mdc"
+echo "team sop" > "$TEST_DIR_2/.cursor/rules/agentic-sop.mdc"
+echo "team agy sop" > "$TEST_DIR_2/.agents/rules/agentic-sop.md"
 echo "team" > "$TEST_DIR_2/.claude/skills/team-skill/SKILL.md"
 
 bash "$INSTALLER" "$TEST_DIR_2" --non-interactive --no-deps >/dev/null
@@ -123,6 +141,12 @@ grep -qxF "team" "$TEST_DIR_2/.claude/skills/team-skill/SKILL.md"
 [ -f "$TEST_DIR_2/.claude/skills/sura-prd-trd/SKILL.md" ]
 if grep -q 'team-skill' "$TEST_DIR_2/.git/info/exclude"; then echo "  ❌ [FAIL] skill tim ikut di-exclude"; exit 1; fi
 [ "$(wc -c < "$TEST_DIR_2/CLAUDE.local.md")" -le 6144 ]
+grep -qxF "team sop" "$TEST_DIR_2/.cursor/rules/agentic-sop.mdc" || { echo "  ❌ [FAIL] agentic-sop.mdc milik tim tertimpa"; exit 1; }
+grep -qxF "team agy sop" "$TEST_DIR_2/.agents/rules/agentic-sop.md" || { echo "  ❌ [FAIL] agentic-sop.md milik tim tertimpa"; exit 1; }
+grep -q 'SURA-AGENTIC-AUTO-GENERATED' "$TEST_DIR_2/.cursor/rules/sura-agentic-sop.mdc"
+grep -q 'SURA-AGENTIC-AUTO-GENERATED' "$TEST_DIR_2/.agents/rules/sura-agentic-sop.md"
+git -C "$TEST_DIR_2" status --porcelain -uall | grep -qF '.cursor/rules/team.mdc' || { echo "  ❌ [FAIL] rule tim baru tersembunyi dari git"; exit 1; }
+if git -C "$TEST_DIR_2" status --porcelain -uall | grep -q 'sura-agentic-sop'; then echo "  ❌ [FAIL] payload Sura bocor ke git"; exit 1; fi
 
 grep -qxF "# Team Claude Rules" "$TEST_DIR_2/CLAUDE.md"
 grep -qxF "# Team Gemini Rules" "$TEST_DIR_2/GEMINI.md"
@@ -132,7 +156,7 @@ grep -qxF "custom_ignore_dir/" "$TEST_DIR_2/.ignore"
 
 echo "  ✅ [PASS] Team CLAUDE.md, GEMINI.md, and custom .ignore preserved safely"
 # 4. Superpowers skill names referenced in rules must exist (catches upstream renames)
-SP_DIR="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1)}"
+SP_DIR="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1 || true)}"
 if [ -z "$SP_DIR" ] || [ ! -d "$SP_DIR" ]; then
   echo "  ⏭️  [SKIP] Superpowers tidak ditemukan — cek nama skill dilewati"
 else
@@ -151,10 +175,14 @@ make_stubs() {
   printf '#!/bin/sh\necho "uv $*" >> "%s/calls.log"\n[ "$1 $2" = "tool install" ] && cp "%s/graphify.real" "%s/graphify" && chmod +x "%s/graphify"\nexit 0\n' "$STUB_BIN" "$STUB_BIN" "$STUB_BIN" "$STUB_BIN" "$STUB_BIN" > "$STUB_BIN/uv"
   chmod +x "$STUB_BIN/claude" "$STUB_BIN/uv" "$STUB_BIN/graphify.real"
 }
+SYS_BIN="$TMP_BASE/sys-bin"; mkdir -p "$SYS_BIN"
+for t in bash sh env mkdir pwd dirname basename date sed cp rm rmdir grep awk cat ls sort tail cut head chmod wc tr; do
+  ln -sf "$(command -v "$t")" "$SYS_BIN/$t"
+done
 run_deps() {
   local dir="$TMP_BASE/deps-$1"; shift
   mkdir -p "$dir"
-  PATH="$STUB_BIN:/usr/bin:/bin" bash "$INSTALLER" "$dir" --scope cli-lib --test flexible "$@" < /dev/null 2>&1
+  PATH="$STUB_BIN:$SYS_BIN" bash "$INSTALLER" "$dir" --scope cli-lib --test flexible "$@" < /dev/null 2>&1
 }
 
 make_stubs
@@ -179,6 +207,7 @@ if grep -q 'install' "$STUB_BIN/calls.log"; then echo "  ❌ [FAIL] install ulan
 
 make_stubs
 rm -f "$STUB_BIN/uv"
+if PATH="$STUB_BIN:$SYS_BIN" command -v uv >/dev/null; then echo "  ❌ [FAIL] PATH test tidak hermetis (uv sistem terlihat)"; exit 1; fi
 OUT="$(run_deps no-uv --with-deps)" || { echo "  ❌ [FAIL] installer gagal saat uv tidak ada"; exit 1; }
 grep -q '⚠️' <<<"$OUT" || { echo "  ❌ [FAIL] tidak ada peringatan saat uv tidak ada"; exit 1; }
 

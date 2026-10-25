@@ -15,11 +15,16 @@ pass() { echo "  ✅ [PASS] $*"; }
 echo "🧪 Running Sura-agentic Content Lint..."
 
 # 1. Skills: valid frontmatter, name matches folder
-SKILLS=(sura-prd-trd sura-project-profile sura-graphify)
+for n in sura-prd-trd sura-project-profile sura-graphify; do
+  [ -f "skills/$n/SKILL.md" ] || fail "skills/$n/SKILL.md tidak ada"
+done
+SKILLS=()
+for d in skills/*/; do SKILLS+=("$(basename "$d")"); done
 for n in "${SKILLS[@]}"; do
   f="skills/$n/SKILL.md"
   [ -f "$f" ] || fail "$f tidak ada"
   [ "$(head -1 "$f")" = "---" ] || fail "$f tidak diawali frontmatter"
+  awk 'NR>1 && /^---$/ {found=1; exit} END {exit !found}' "$f" || fail "$f: frontmatter tidak ditutup '---'"
   fm="$(awk 'NR==1{next} /^---$/{exit} {print}' "$f")"
   grep -qxF "name: $n" <<<"$fm" || fail "$f: name harus '$n'"
   grep -qE '^description: .+' <<<"$fm" || fail "$f: description kosong"
@@ -59,6 +64,8 @@ pass "Core ramping & varian per tool ada dalam batas baris"
 grep -q 'sura-memory/designs/' rules/claude/superpowers-overrides.md || fail "override lokasi plan hilang"
 grep -q 'no-test' rules/claude/superpowers-overrides.md || fail "override gerbang TEST_MODE hilang"
 grep -q 'lanjut' rules/claude/superpowers-overrides.md || fail "override advisor-strict hilang"
+grep -q 'tidak tersedia' rules/claude/superpowers-overrides.md || fail "fallback saat Superpowers tidak terpasang hilang"
+grep -q 'aturan tim' rules/core/RULES.md || fail "aturan 'tim menang' hilang dari core"
 ! grep -rn 'lebih dari 100 baris\|> 100 baris' rules/ || fail "rules/ masih melarang baca > 100 baris"
 grep -q 'review' rules/core/RULES.md && grep -q 'refactor' rules/core/RULES.md || fail "pengecualian baca utuh (review/refactor) hilang"
 ! grep -rniE '(hapus|timpa|replace)[^.]*(PRD|TRD)' rules/ || fail "rules/ masih menyuruh hapus/timpa PRD/TRD"
