@@ -51,6 +51,15 @@ bash ~/Sura-agentic/install.sh --scope frontend --test no-test
 bash ~/Sura-agentic/install.sh --non-interactive
 ```
 
+**Superpowers & Graphify otomatis dicek.** Keduanya terpasang per user (sekali per laptop), jadi installer hanya menawarkan yang belum ada:
+
+| Kondisi | Mode interaktif | `--non-interactive` | `--with-deps` | `--no-deps` |
+|---|---|---|---|---|
+| Sudah terpasang | `✅ sudah terpasang` | sama | sama | tidak dicek |
+| Ada yang belum | tampilkan perintah, tanya `Pasang sekarang? [Y/n]` | hanya cetak rekomendasi | pasang tanpa bertanya | tidak dicek |
+
+Perintah yang dipakai: `claude plugin install superpowers@superpowers-marketplace` dan `uv tool install graphifyy` (paket resmi, dua huruf y) + `graphify install --platform claude`. Gagal install tidak menghentikan installer.
+
 **Selesai!** Script akan otomatis:
 * ✅ Menyiapkan folder `sura-memory/` beserta seluruh template dokumen & subfolder (`TRD/`, `designs/`, `reviews/`, `lessons/`).
 * ✅ Memasang filter penghemat token (`.ignore`, `.cursorignore`, `.geminiignore`) tanpa menimpa kustomisasi yang sudah ada.

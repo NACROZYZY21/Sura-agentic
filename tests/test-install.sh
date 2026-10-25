@@ -23,7 +23,7 @@ mkdir -p "$TEST_DIR_1"
 git -C "$TEST_DIR_1" init -q
 touch "$TEST_DIR_1/go.mod"
 
-bash "$INSTALLER" "$TEST_DIR_1" --scope backend --test no-test >/dev/null
+bash "$INSTALLER" "$TEST_DIR_1" --scope backend --test no-test --no-deps >/dev/null
 
 # Verify directories & files created
 for f in \
@@ -102,7 +102,7 @@ echo "  ✅ [PASS] Profile (backend + no-test), full sura-memory tree, and zero 
 
 # Re-run upgrade: old monolithic CLAUDE.md gets replaced, excludes not duplicated
 { echo "<!-- SURA-AGENTIC-AUTO-GENERATED -->"; for i in $(seq 1 500); do echo "old rule line $i"; done; } > "$TEST_DIR_1/CLAUDE.md"
-bash "$INSTALLER" "$TEST_DIR_1" --scope backend --test no-test >/dev/null
+bash "$INSTALLER" "$TEST_DIR_1" --scope backend --test no-test --no-deps >/dev/null
 [ "$(wc -l < "$TEST_DIR_1/CLAUDE.md")" -le 80 ] || { echo "  ❌ [FAIL] re-run tidak meramping CLAUDE.md lama"; exit 1; }
 [ "$(grep -cxF 'sura-memory/' "$TEST_DIR_1/.git/info/exclude")" -eq 1 ] || { echo "  ❌ [FAIL] exclude dobel"; exit 1; }
 echo "  ✅ [PASS] Re-run upgrade dari payload lama: CLAUDE.md ramping, exclude tidak dobel"
@@ -117,7 +117,7 @@ echo "custom_ignore_dir/" > "$TEST_DIR_2/.ignore"
 mkdir -p "$TEST_DIR_2/.claude/skills/team-skill"
 echo "team" > "$TEST_DIR_2/.claude/skills/team-skill/SKILL.md"
 
-bash "$INSTALLER" "$TEST_DIR_2" --non-interactive >/dev/null
+bash "$INSTALLER" "$TEST_DIR_2" --non-interactive --no-deps >/dev/null
 
 grep -qxF "team" "$TEST_DIR_2/.claude/skills/team-skill/SKILL.md"
 [ -f "$TEST_DIR_2/.claude/skills/sura-prd-trd/SKILL.md" ]
@@ -141,5 +141,50 @@ else
   done
   echo "  ✅ [PASS] Semua referensi superpowers:* ada di $SP_DIR"
 fi
+
+# 5. Dependency offer (Superpowers + Graphify) — stubbed PATH, nothing real is installed
+STUB_BIN="$TMP_BASE/stub-bin"
+make_stubs() {
+  rm -rf "$STUB_BIN"; mkdir -p "$STUB_BIN"; : > "$STUB_BIN/calls.log"; : > "$STUB_BIN/plugins"
+  printf '#!/bin/sh\necho "claude $*" >> "%s/calls.log"\n[ "$1 $2" = "plugin list" ] && cat "%s/plugins"\nexit 0\n' "$STUB_BIN" "$STUB_BIN" > "$STUB_BIN/claude"
+  printf '#!/bin/sh\necho "graphify $*" >> "%s/calls.log"\n' "$STUB_BIN" > "$STUB_BIN/graphify.real"
+  printf '#!/bin/sh\necho "uv $*" >> "%s/calls.log"\n[ "$1 $2" = "tool install" ] && cp "%s/graphify.real" "%s/graphify" && chmod +x "%s/graphify"\nexit 0\n' "$STUB_BIN" "$STUB_BIN" "$STUB_BIN" "$STUB_BIN" "$STUB_BIN" > "$STUB_BIN/uv"
+  chmod +x "$STUB_BIN/claude" "$STUB_BIN/uv" "$STUB_BIN/graphify.real"
+}
+run_deps() {
+  local dir="$TMP_BASE/deps-$1"; shift
+  mkdir -p "$dir"
+  PATH="$STUB_BIN:/usr/bin:/bin" bash "$INSTALLER" "$dir" --scope cli-lib --test flexible "$@" < /dev/null 2>&1
+}
+
+make_stubs
+OUT="$(run_deps missing-noninteractive --non-interactive)"
+grep -qF 'uv tool install graphifyy' <<<"$OUT" || { echo "  ❌ [FAIL] rekomendasi graphify tidak dicetak"; exit 1; }
+grep -qF 'claude plugin install superpowers@superpowers-marketplace' <<<"$OUT" || { echo "  ❌ [FAIL] rekomendasi superpowers tidak dicetak"; exit 1; }
+if grep -q 'install' "$STUB_BIN/calls.log"; then echo "  ❌ [FAIL] non-interactive menjalankan install"; cat "$STUB_BIN/calls.log"; exit 1; fi
+
+make_stubs
+run_deps missing-with-deps --with-deps >/dev/null
+grep -qF 'uv tool install graphifyy' "$STUB_BIN/calls.log" || { echo "  ❌ [FAIL] --with-deps tidak memasang graphifyy"; exit 1; }
+grep -qF 'claude plugin install superpowers@superpowers-marketplace' "$STUB_BIN/calls.log" || { echo "  ❌ [FAIL] --with-deps tidak memasang superpowers"; exit 1; }
+grep -qF 'graphify install --platform claude' "$STUB_BIN/calls.log" || { echo "  ❌ [FAIL] skill graphify tidak didaftarkan"; exit 1; }
+if grep -q 'graphify claude install' "$STUB_BIN/calls.log"; then echo "  ❌ [FAIL] memakai graphify claude install"; exit 1; fi
+
+make_stubs
+cp "$STUB_BIN/graphify.real" "$STUB_BIN/graphify"; chmod +x "$STUB_BIN/graphify"
+echo "superpowers@superpowers-marketplace" > "$STUB_BIN/plugins"
+OUT="$(run_deps present --with-deps)"
+grep -q 'sudah terpasang' <<<"$OUT" || { echo "  ❌ [FAIL] deps terpasang tidak dikenali"; exit 1; }
+if grep -q 'install' "$STUB_BIN/calls.log"; then echo "  ❌ [FAIL] install ulang padahal sudah ada"; exit 1; fi
+
+make_stubs
+rm -f "$STUB_BIN/uv"
+OUT="$(run_deps no-uv --with-deps)" || { echo "  ❌ [FAIL] installer gagal saat uv tidak ada"; exit 1; }
+grep -q '⚠️' <<<"$OUT" || { echo "  ❌ [FAIL] tidak ada peringatan saat uv tidak ada"; exit 1; }
+
+make_stubs
+OUT="$(run_deps skip --no-deps)"
+if grep -q 'Superpowers' <<<"$OUT"; then echo "  ❌ [FAIL] --no-deps masih mengecek dependensi"; exit 1; fi
+echo "  ✅ [PASS] Tawaran install Superpowers & Graphify (rekomendasi, --with-deps, sudah ada, tanpa uv, --no-deps)"
 
 echo "🎉 All installer tests passed (100%)!"

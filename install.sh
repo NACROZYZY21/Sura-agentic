@@ -12,6 +12,7 @@ TARGET_DIR="."
 PROJECT_SCOPE=""
 TEST_MODE=""
 NON_INTERACTIVE=false
+DEPS_MODE="ask"
 
 usage() {
   cat <<EOF
@@ -21,6 +22,8 @@ Options:
   --scope <scope>       Project scope: fullstack | backend | frontend | apidef | cli-lib
   --test <mode>         Testing mode:  strict-tdd | flexible | no-test
   --non-interactive     Use auto-detected/default profile without prompting
+  --with-deps           Install missing Superpowers & Graphify without asking
+  --no-deps             Skip the Superpowers & Graphify check entirely
   -h, --help            Show this help message
 EOF
 }
@@ -37,6 +40,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --non-interactive|-y)
       NON_INTERACTIVE=true
+      shift
+      ;;
+    --with-deps)
+      DEPS_MODE="yes"
+      shift
+      ;;
+    --no-deps)
+      DEPS_MODE="no"
       shift
       ;;
     -h|--help)
@@ -289,6 +300,75 @@ if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
     fi
   done
   echo "  🛡️ Protected all config in .git/info/exclude (100% safe from git & PR leaks!)"
+fi
+
+# ------------------------------------------------------------------------------
+# 5. Dependencies: Superpowers (Claude Code plugin) & Graphify (CLI)
+# Terpasang per user, bukan per proyek — cek dulu, tawarkan hanya yang belum ada.
+# ------------------------------------------------------------------------------
+has_superpowers() {
+  command -v claude >/dev/null 2>&1 && claude plugin list 2>/dev/null | grep -q 'superpowers@'
+}
+
+has_graphify() {
+  command -v graphify >/dev/null 2>&1
+}
+
+check_superpowers_skill_names() {
+  local sp_dir s
+  sp_dir="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1)}"
+  [ -n "$sp_dir" ] && [ -d "$sp_dir" ] || return 0
+  for s in $(grep -rhoE 'superpowers:[a-z-]+' "$SCRIPT_DIR/rules" | sort -u | cut -d: -f2); do
+    [ -f "$sp_dir/$s/SKILL.md" ] || echo "  ⚠️  Skill superpowers:$s tidak ditemukan di versi terpasang — rules Sura perlu disesuaikan"
+  done
+}
+
+offer_deps() {
+  local MISSING_CMDS=() answer cmd
+  if has_superpowers; then :; elif command -v claude >/dev/null 2>&1; then
+    MISSING_CMDS+=("claude plugin marketplace add obra/superpowers-marketplace")
+    MISSING_CMDS+=("claude plugin install superpowers@superpowers-marketplace")
+  else
+    echo "  ⚠️  Claude Code (claude) tidak ditemukan — Superpowers dilewati. Lihat https://github.com/obra/superpowers"
+  fi
+  if has_graphify; then :; elif command -v uv >/dev/null 2>&1; then
+    MISSING_CMDS+=("uv tool install graphifyy")
+    MISSING_CMDS+=("graphify install --platform claude")
+  else
+    echo "  ⚠️  uv tidak ditemukan — Graphify dilewati. Pasang uv lalu: uv tool install graphifyy"
+  fi
+  command -v gemini >/dev/null 2>&1 && echo "  💡 Gemini CLI: gemini extensions install https://github.com/obra/superpowers"
+  command -v agy >/dev/null 2>&1 && echo "  💡 Antigravity: agy plugin install https://github.com/obra/superpowers"
+
+  if [ ${#MISSING_CMDS[@]} -eq 0 ]; then
+    has_superpowers && has_graphify && echo "  ✅ Superpowers & Graphify sudah terpasang"
+    return 0
+  fi
+
+  echo "  📦 Rekomendasi: pasang Superpowers & Graphify (graphifyy = paket resmi, dua huruf y):"
+  printf '       %s\n' "${MISSING_CMDS[@]}"
+
+  if [ "$DEPS_MODE" = "ask" ]; then
+    if [ "$NON_INTERACTIVE" = true ] || [ ! -t 0 ]; then
+      echo "  ℹ️  Jalankan perintah di atas, atau ulangi install dengan --with-deps"
+      return 0
+    fi
+    read -r -p "👉 Pasang sekarang? [Y/n]: " answer
+    case "$answer" in n|N|no|tidak) return 0 ;; esac
+  fi
+
+  for cmd in "${MISSING_CMDS[@]}"; do
+    echo "  ▶️  $cmd"
+    $cmd || echo "  ⚠️  Gagal: $cmd (lanjut tanpa menghentikan installer)"
+  done
+  has_superpowers && check_superpowers_skill_names
+  return 0
+}
+
+if [ "$DEPS_MODE" != "no" ]; then
+  echo ""
+  echo "🔌 Cek Superpowers & Graphify..."
+  offer_deps
 fi
 
 echo ""
