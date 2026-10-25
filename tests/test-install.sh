@@ -69,6 +69,10 @@ grep -q "TEST_MODE=no-test" "$TEST_DIR_1/CLAUDE.md"
 grep -q "\`backend\`" "$TEST_DIR_1/sura-memory/CONVENTIONS.md"
 grep -q "\`no-test\`" "$TEST_DIR_1/sura-memory/CONVENTIONS.md"
 
+# Project profile saved for plugin-mode hook & --upgrade
+grep -qxF 'PROJECT_SCOPE=backend' "$TEST_DIR_1/sura-memory/.profile" && grep -qxF 'TEST_MODE=no-test' "$TEST_DIR_1/sura-memory/.profile" \
+  || { echo "  ❌ [FAIL] sura-memory/.profile tidak menyimpan profil proyek"; exit 1; }
+
 # Verify global developer profile (~/.sura) — created once, never overwritten
 [ -f "$HOME/.sura/profile.md" ] || { echo "  ❌ [FAIL] ~/.sura/profile.md tidak dibuat"; exit 1; }
 [ -f "$HOME/.sura/lessons.md" ] || { echo "  ❌ [FAIL] ~/.sura/lessons.md tidak dibuat"; exit 1; }
@@ -197,6 +201,20 @@ OUT="$(bash "$INSTALLER" "$TEST_DIR_3" --non-interactive --no-deps)"
 [ "$(cat "$TEST_DIR_3/.claude/settings.local.json")" = '{"permissions":{}}' ] || { echo "  ❌ [FAIL] settings.local.json yang di-track tim diubah"; exit 1; }
 grep -q 'settings.local.json' <<<"$OUT" || { echo "  ❌ [FAIL] tidak ada peringatan hook dilewati"; exit 1; }
 echo "  ✅ [PASS] Hook Claude Code: terdaftar sekali, settings tim dipertahankan, file yang di-track tidak disentuh"
+# Plugin mode: project gets only sura-memory/, .ignore, ~/.sura — rules come from the Claude Code plugin
+TEST_DIR_P="$TMP_BASE/proj-plugin"
+mkdir -p "$TEST_DIR_P"; git -C "$TEST_DIR_P" init -q
+bash "$INSTALLER" "$TEST_DIR_P" --plugin --scope frontend --test flexible --no-deps >/dev/null < /dev/null
+for want in sura-memory/MEMORY.md sura-memory/.profile .ignore; do
+  [ -e "$TEST_DIR_P/$want" ] || { echo "  ❌ [FAIL] mode plugin tidak membuat $want"; exit 1; }
+done
+grep -qxF 'PROJECT_SCOPE=frontend' "$TEST_DIR_P/sura-memory/.profile" || { echo "  ❌ [FAIL] mode plugin: profil salah"; exit 1; }
+for gone in CLAUDE.md CLAUDE.local.md GEMINI.md .cursor .agents .claude .cursorignore .geminiignore; do
+  [ ! -e "$TEST_DIR_P/$gone" ] || { echo "  ❌ [FAIL] mode plugin menulis $gone ke repo"; exit 1; }
+done
+[ -z "$(git -C "$TEST_DIR_P" status --porcelain -uall)" ] || { echo "  ❌ [FAIL] mode plugin bocor ke git"; git -C "$TEST_DIR_P" status --porcelain -uall; exit 1; }
+echo "  ✅ [PASS] Mode plugin: hanya sura-memory/, .ignore, ~/.sura — tanpa file rules di repo"
+
 # Uninstall: remove only Sura's files; keep team files, notes (sura-memory/) and ~/.sura
 TEST_DIR_U="$TMP_BASE/proj-uninstall"
 mkdir -p "$TEST_DIR_U/.cursor/rules" "$TEST_DIR_U/.claude/skills/team-skill"

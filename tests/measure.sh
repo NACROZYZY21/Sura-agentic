@@ -33,6 +33,8 @@ mkdir -p "$TMP_BASE/old-src"
 git -C "$REPO_ROOT" archive "$BASELINE_REV" | tar -x -C "$TMP_BASE/old-src"
 install_into "$TMP_BASE/old-src" "$TMP_BASE/old"
 install_into "$REPO_ROOT" "$TMP_BASE/new"
+mkdir -p "$TMP_BASE/plugin"; git -C "$TMP_BASE/plugin" init -q
+bash "$REPO_ROOT/install.sh" "$TMP_BASE/plugin" --plugin --non-interactive --no-deps >/dev/null 2>&1
 
 O="$TMP_BASE/old"; N="$TMP_BASE/new"
 OM="$O/sura-memory"; NM="$N/sura-memory"
@@ -44,6 +46,8 @@ OLD_READ="$(bytes "$OM/MEMORY.md" "$OM/CONVENTIONS.md" "$OM/TASK_LOG.md" "$OM/TR
 NEW_READ="$(bytes "$HOME/.sura/profile.md" "$HOME/.sura/lessons.md" "$NM/MEMORY.md" "$NM/CONVENTIONS.md" "$NM/TASK_LOG.md")"
 # SessionStart hook output is injected automatically every Claude Code session
 NEW_HOOK="$(CLAUDE_PROJECT_DIR="$N" bash "$N/.claude/hooks/sura-session-start.sh" | wc -c | tr -d ' ')"
+# Plugin mode: no CLAUDE.md in the repo; the plugin's SessionStart hook injects core rules instead
+PLUGIN_HOOK="$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TMP_BASE/plugin" bash "$REPO_ROOT/hooks/sura-session-start.sh" | wc -c | tr -d ' ')"
 OLD_TOTAL=$((OLD_CLAUDE + OLD_READ)); NEW_TOTAL=$((NEW_CLAUDE + NEW_HOOK + NEW_READ))
 
 table() {
@@ -53,6 +57,7 @@ table() {
   echo "| Hook \`SessionStart\` (otomatis) | — | $(kb "$NEW_HOOK") KB |"
   echo "| File wajib saat \`baca sura\` | 5 file, $(kb "$OLD_READ") KB | 5 file (2 global + 3 proyek), $(kb "$NEW_READ") KB |"
   echo "| **Total awal sesi (Claude Code)** | **$(kb "$OLD_TOTAL") KB ≈ $(tok "$OLD_TOTAL") token** | **$(kb "$NEW_TOTAL") KB ≈ $(tok "$NEW_TOTAL") token** |"
+  echo "| Mode plugin: hook \`SessionStart\` (menggantikan \`CLAUDE.md\` + hook di atas) | — | $(kb "$PLUGIN_HOOK") KB |"
   echo "| \`GEMINI.md\` / Cursor / Antigravity (selalu dimuat) | $(kb "$OLD_INLINE") KB | $(kb "$NEW_INLINE") KB |"
 }
 

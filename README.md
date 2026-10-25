@@ -38,7 +38,30 @@ Bekerja bersama AI coding assistant (Antigravity, Gemini CLI, Claude Code, Curso
 git clone https://github.com/NACROZYZY21/Sura-agentic.git ~/Sura-agentic
 ```
 
-### 2. Pasang ke Proyek yang Sedang Dikerjakan
+### Cara Tercepat (Claude Code): Plugin
+Pasang sekali per laptop — rules, skill, hook, dan command ikut, dan selalu mengikuti versi terbaru repo ini:
+
+```bash
+/plugin install sura --marketplace NACROZYZY21/Sura-agentic
+
+# atau lewat terminal:
+claude plugin marketplace add NACROZYZY21/Sura-agentic
+claude plugin install sura@sura-agentic
+```
+
+Lalu di tiap proyek, cukup ketik di Claude Code:
+
+| Command | Fungsi |
+|---|---|
+| `/sura:init [scope] [test-mode]` | Siapkan `sura-memory/`, `~/.sura/`, dan `.ignore` — **tanpa** `CLAUDE.md`, `.claude/`, atau file rules lain di repo (aman untuk repo tim) |
+| `/sura:baca [topik]` | Sama dengan `baca sura` |
+| `/sura:update [catatan]` | Sama dengan `update sura` |
+
+Update: `claude plugin update sura@sura-agentic`. Cabut: `claude plugin uninstall sura@sura-agentic` (lalu `install.sh --uninstall` untuk membersihkan `.ignore`/exclude di proyek).
+
+Gemini CLI, Cursor, dan Antigravity tetap memakai `install.sh` di bawah.
+
+### 2. Pasang ke Proyek yang Sedang Dikerjakan (install.sh)
 Masuk ke folder proyek target, lalu jalankan installer:
 
 ```bash
@@ -102,6 +125,7 @@ Diukur oleh `bash tests/measure.sh` dengan memasang versi sebelum refactor (`0a9
 | Hook `SessionStart` (otomatis) | — | 2.2 KB |
 | File wajib saat `baca sura` | 5 file, 13.0 KB | 5 file (2 global + 3 proyek), 7.2 KB |
 | **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **14.6 KB ≈ 3652 token** |
+| Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 7.2 KB |
 | `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 13.9 KB |
 <!-- MEASURE:END -->
 
@@ -136,6 +160,8 @@ Sura-agentic/
 │   │   └── superpowers-overrides.md        # Hanya Claude Code: lokasi dokumen, gerbang TEST_MODE, advisor-strict
 │   └── inline/
 │       └── workflow-checklist.md           # Hanya Gemini/Cursor/Antigravity: checklist alur kerja ringkas
+├── .claude-plugin/                         # Manifest plugin Claude Code (plugin.json) + marketplace.json
+├── commands/                               # /sura:init, /sura:baca, /sura:update (mode plugin)
 ├── hooks/                                  # Hook Claude Code → .claude/hooks/ (+ merge-settings.py untuk settings.local.json)
 ├── skills/                                 # ON-DEMAND — ke .claude/skills/ (Claude), di-inline untuk tool lain
 │   ├── sura-prd-trd/SKILL.md               # baca/update sura, mode Existing/Greenfield, arsip, struktur PRD & TRD
@@ -161,6 +187,7 @@ Sura-agentic/
     ├── measure.sh                          # Ukur payload & bacaan awal sesi; --check menjaga angka di README
     ├── pre-push                            # Git hook: semua test wajib lulus sebelum push
     ├── test-hooks.sh                       # Unit test hook SessionStart & PreToolUse
+    ├── test-plugin.sh                      # Manifest, hooks.json, command, claude plugin validate, mode plugin
     ├── test-content.sh                     # Lint isi rules, skills, templates, README
     └── test-install.sh                     # Automated test suite untuk memverifikasi installer
 ```
@@ -170,7 +197,7 @@ Sura-agentic/
 ## 🧪 Menjalankan Pengujian Installer
 
 ```bash
-bash tests/test-content.sh && bash tests/test-hooks.sh && bash tests/test-install.sh && bash tests/measure.sh --check
+bash tests/test-content.sh && bash tests/test-hooks.sh && bash tests/test-plugin.sh && bash tests/test-install.sh && bash tests/measure.sh --check
 
 # Jalankan otomatis di setiap git push:
 ln -sf ../../tests/pre-push .git/hooks/pre-push

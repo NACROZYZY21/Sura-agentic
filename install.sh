@@ -16,6 +16,7 @@ DEPS_MODE="ask"
 UNINSTALL=false
 PURGE=false
 UPGRADE=false
+PLUGIN_MODE=false
 
 usage() {
   cat <<EOF
@@ -28,6 +29,7 @@ Options:
   --with-deps           Install missing Superpowers & Graphify without asking
   --no-deps             Skip the Superpowers & Graphify check entirely
   --upgrade             Refresh rules/skills/hooks with the saved profile; template changes become diffs in sura-memory/.upgrade/
+  --plugin              Claude Code plugin mode: only sura-memory/, .ignore, ~/.sura (rules/hooks come from the plugin)
   --uninstall           Remove everything Sura installed (keeps sura-memory/ and ~/.sura)
   --purge               With --uninstall: also delete sura-memory/
   -h, --help            Show this help message
@@ -62,6 +64,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --purge)
       PURGE=true
+      shift
+      ;;
+    --plugin)
+      PLUGIN_MODE=true
       shift
       ;;
     --upgrade)
@@ -160,6 +166,10 @@ fi
 
 # Upgrade memakai profil proyek yang tersimpan di payload sebelumnya
 if [ "$UPGRADE" = true ]; then
+  if [ -f sura-memory/.profile ]; then
+    [ -n "$PROJECT_SCOPE" ] || PROJECT_SCOPE="$(grep '^PROJECT_SCOPE=' sura-memory/.profile | cut -d= -f2)"
+    [ -n "$TEST_MODE" ] || TEST_MODE="$(grep '^TEST_MODE=' sura-memory/.profile | cut -d= -f2)"
+  fi
   for f in CLAUDE.md CLAUDE.local.md GEMINI.md GEMINI.local.md; do
     if [ -f "$f" ] && grep -q "$MARKER" "$f"; then
       [ -n "$PROJECT_SCOPE" ] || PROJECT_SCOPE="$(grep -oE 'PROJECT_SCOPE=[a-z-]+' "$f" | head -1 | cut -d= -f2)"
@@ -242,6 +252,9 @@ echo "  🎯 Project Profile → Scope: [$PROJECT_SCOPE] | Test Mode: [$TEST_MOD
 # ------------------------------------------------------------------------------
 MEMORY_DIR="$TARGET_FULL_PATH/sura-memory"
 mkdir -p "$MEMORY_DIR/TRD/archive" "$MEMORY_DIR/designs" "$MEMORY_DIR/reviews" "$MEMORY_DIR/lessons"
+
+# Profil proyek tersimpan: dibaca hook mode plugin dan --upgrade
+printf 'PROJECT_SCOPE=%s\nTEST_MODE=%s\n' "$PROJECT_SCOPE" "$TEST_MODE" > "$MEMORY_DIR/.profile"
 
 # Double safety net: local .gitignore inside sura-memory/
 if [ ! -f "$MEMORY_DIR/.gitignore" ]; then
@@ -338,7 +351,9 @@ fi
 # 2. Deploy Universal Token-Saver Ignore Files
 # Filter yang sudah ada TIDAK PERNAH ditimpa — sering dikustomisasi per proyek.
 # ------------------------------------------------------------------------------
-for ignore_file in ".ignore" ".cursorignore" ".geminiignore"; do
+# Mode plugin hanya untuk Claude Code: .cursorignore/.geminiignore tidak relevan
+if [ "$PLUGIN_MODE" = true ]; then IGNORE_FILES=(".ignore"); else IGNORE_FILES=(".ignore" ".cursorignore" ".geminiignore"); fi
+for ignore_file in "${IGNORE_FILES[@]}"; do
   if [ -f "$TARGET_FULL_PATH/$ignore_file" ]; then
     echo "  ⏭️  $ignore_file sudah ada → dilewati (kustomisasi kamu aman)"
   else
@@ -350,6 +365,11 @@ done
 # ------------------------------------------------------------------------------
 # 3. Setup AI Rules for Antigravity, Gemini CLI, Cursor, & Claude Code
 # ------------------------------------------------------------------------------
+CLAUDE_FILE=""; GEMINI_FILE=""; AGENTS_FILE=""; CURSOR_FILE=""
+SKILL_EXCLUDES=(); HOOK_EXCLUDES=()
+if [ "$PLUGIN_MODE" = true ]; then
+  echo "  🔌 Mode plugin: rules, skill, dan hook disediakan plugin Claude Code 'sura' — tidak ada file rules di repo"
+else
 # Core selalu dimuat semua tool. Claude Code memuat protokol detail sebagai skill
 # on-demand; tool lain (tanpa mekanisme skill) menerima isinya secara inline.
 strip_frontmatter() {
@@ -469,6 +489,7 @@ install_claude_skills
 install_claude_hooks
 
 echo "  ✅ Configured AI Rules → $CLAUDE_FILE, .claude/skills/, .claude/hooks/, $GEMINI_FILE, .cursor/rules/, .agents/rules/"
+fi
 
 # ------------------------------------------------------------------------------
 # 4. Protect Everything in Local Git Exclude (Zero Risk of PR Leakage)
@@ -481,7 +502,7 @@ if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
     mv "$GIT_EXCLUDE.tmp" "$GIT_EXCLUDE"
     echo "  🧹 Exclude lama .agents/rules/ & .cursor/rules/ diganti per file"
   fi
-  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" "$AGENTS_FILE" "$CURSOR_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}" "${HOOK_EXCLUDES[@]}"; do
+  for pattern in "sura-memory/" "${IGNORE_FILES[@]}" "$AGENTS_FILE" "$CURSOR_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}" "${HOOK_EXCLUDES[@]}"; do
     if [ -n "$pattern" ] && ! grep -qxF "$pattern" "$GIT_EXCLUDE" 2>/dev/null; then
       echo "$pattern" >> "$GIT_EXCLUDE"
     fi

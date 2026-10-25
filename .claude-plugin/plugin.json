@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "sura",
+  "displayName": "Sura Agentic",
+  "description": "Navigator senior untuk pair-programming: memori proyek (sura-memory), PRD/TRD otomatis, profil developer global, hook hemat token, terintegrasi Superpowers & Graphify",
+  "author": {
+    "name": "Sultan Fadhil",
+    "url": "https://github.com/NACROZYZY21"
+  },
+  "homepage": "https://github.com/NACROZYZY21/Sura-agentic",
+  "repository": "https://github.com/NACROZYZY21/Sura-agentic",
+  "license": "MIT",
+  "keywords": ["memory", "prd", "trd", "pair-programming", "token-saving", "superpowers", "graphify"]
+}

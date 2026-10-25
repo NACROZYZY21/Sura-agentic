@@ -1,0 +1,15 @@
+{
+  "name": "sura-agentic",
+  "description": "Marketplace untuk plugin Sura Agentic",
+  "owner": {
+    "name": "Sultan Fadhil",
+    "url": "https://github.com/NACROZYZY21"
+  },
+  "plugins": [
+    {
+      "name": "sura",
+      "description": "Navigator senior untuk pair-programming: memori proyek, PRD/TRD otomatis, profil developer global, hook hemat token",
+      "source": "./"
+    }
+  ]
+}
