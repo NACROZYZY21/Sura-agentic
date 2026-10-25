@@ -20,7 +20,7 @@ Terakhir diperbarui: **{{DATE}}**
 | [PR_REVIEW_PLAYBOOK.md](PR_REVIEW_PLAYBOOK.md) | Standar checklist saat me-review PR & aturan panen revisi |
 | [TASK_LOG.md](TASK_LOG.md) | Log lifecycle task aktif + maks 2 task selesai terakhir |
 | `TASK_LOG.archive.md` | Arsip task lama (tidak dibaca otomatis kecuali diminta) |
-| [TRD/PRD.md](TRD/PRD.md) & [TRD/TRD.md](TRD/TRD.md) | **PRD & TRD aktif saat ini** (bisa dari repo existing maupun repo baru; otomatis dihapus & diganti saat pindah dari Proyek A ke Proyek B) |
+| [TRD/PRD.md](TRD/PRD.md) & [TRD/TRD.md](TRD/TRD.md) | **PRD & TRD aktif saat ini** (bisa dari repo existing maupun repo baru; diarsipkan ke `TRD/archive/YYYY-MM-DD-<slug>/` lalu diganti baru saat pindah dari Proyek A ke Proyek B) |
 | `designs/` | Breakdown desain teknis task yang sedang aktif |
 | `reviews/` | Catatan tiap review PR (`PR_<nomor>_<slug>.md`) — tidak dibaca otomatis |
 | `lessons/` | Catatan post-mortem / kesalahan teknis agar tidak terulang |

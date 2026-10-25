@@ -14,15 +14,15 @@ Terintegrasi penuh dengan **Graphify** (peta arsitektur) dan **Superpowers** (di
 2. **Deteksi Kondisi Repo (2 Mode):**
    - **Repo Sudah Ada Kode (*Existing*):** Jalankan eksplorasi arsitektur **Graphify** (`query_graph` / `get_neighbors`) untuk mempelajari komponen, endpoint, dan skema yang sudah ada.
    - **Repo Belum Ada Kode (*Greenfield*):** Bantu rancang struktur folder dan arsitektur dari nol sesuai `PROJECT_SCOPE`.
-3. Mengaktifkan `superpowers:brainstorming`: berdiskusi dengan developer untuk mematangkan kebutuhan bisnis & teknis.
-4. **Auto-Generate / Replace PRD & TRD:** Setelah diskusi disetujui, AI otomatis menulis ke `sura-memory/TRD/PRD.md` dan `sura-memory/TRD/TRD.md` sebelum menulis kode. (Jika sebelumnya berisi Proyek A yang sudah selesai, otomatis dihapus dan diganti dengan Proyek B).
+3. Sesi diskusi kebutuhan (memakai skill brainstorming bila tersedia di tool kamu): berdiskusi dengan developer untuk mematangkan kebutuhan bisnis & teknis.
+4. **Auto-Generate PRD & TRD:** Setelah diskusi disetujui, AI otomatis menulis ke `sura-memory/TRD/PRD.md` dan `sura-memory/TRD/TRD.md` sebelum menulis kode. (Jika sebelumnya berisi Proyek A yang sudah selesai, Proyek A diarsipkan dulu ke `sura-memory/TRD/archive/`).
 
 ### 🔴 `"update sura"` / `/retro` (Penutup Task & Rotasi Proyek)
 **Kapan dipakai:** Saat proyek/fitur selesai dikembangkan, lulus verifikasi, atau PR sudah di-merge, serta saat mau berpindah ke proyek/fitur berikutnya.
 **Prosedur yang dijalankan AI:**
 1. **Update Task Log & Memory:** Ubah status task di `TASK_LOG.md` menjadi **`Done`**, cantumkan nomor PR + *lessons learned*, arsipkan entri lama jika > 3 task ke `TASK_LOG.archive.md`, dan pindahkan task di `MEMORY.md` ke *Riwayat Proyek/Task Selesai*.
 2. **Rotasi PRD & TRD (Proyek A → Proyek B):**
-   - Jika proyek/fitur A sudah dinyatakan selesai dan developer mulai mendiskusikan proyek/fitur B, **hapus isi `sura-memory/TRD/PRD.md` dan `sura-memory/TRD/TRD.md` milik Proyek A**, lalu ganti sepenuhnya dengan PRD & TRD Proyek B.
+   - Jika proyek/fitur A sudah dinyatakan selesai dan developer mulai mendiskusikan proyek/fitur B, **pindahkan `sura-memory/TRD/PRD.md`, `sura-memory/TRD/TRD.md`, dan design milik Proyek A ke `sura-memory/TRD/archive/YYYY-MM-DD-<slug>/`**, lalu buat PRD & TRD Proyek B dari template.
 
 ---
 

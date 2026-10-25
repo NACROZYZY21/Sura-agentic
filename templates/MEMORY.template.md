@@ -22,8 +22,8 @@ Terakhir diperbarui: **{{DATE}}**
 - **Deskripsi:** {{TASK_BRIEF_DESCRIPTION}}
 - **Fokus:** {{TASK_FOCUS}}
 - **Target:** {{TASK_TARGET}}
-- **PRD Aktif:** [sura-memory/TRD/PRD.md](TRD/PRD.md) *(Diingat selama proyek ini aktif; dihapus & diganti saat pindah ke proyek baru)*
-- **TRD Aktif:** [sura-memory/TRD/TRD.md](TRD/TRD.md) *(Diingat selama proyek ini aktif; dihapus & diganti saat pindah ke proyek baru)*
+- **PRD Aktif:** [sura-memory/TRD/PRD.md](TRD/PRD.md) *(Diingat selama proyek ini aktif; diarsipkan ke `TRD/archive/YYYY-MM-DD-<slug>/` lalu diganti baru saat pindah ke proyek baru)*
+- **TRD Aktif:** [sura-memory/TRD/TRD.md](TRD/TRD.md) *(Diingat selama proyek ini aktif; diarsipkan ke `TRD/archive/YYYY-MM-DD-<slug>/` lalu diganti baru saat pindah ke proyek baru)*
 
 ---
 

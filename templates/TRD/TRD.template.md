@@ -1,7 +1,7 @@
 # TRD: {{FEATURE_NAME}}
 
 > **Status Dokumen:** TRD Aktif (`sura-memory/TRD/TRD.md`)
-> **Aturan Rotasi:** Dokumen ini selalu diingat AI selama mengerjakan proyek/fitur aktif ini. Saat proyek/fitur ini selesai (`update sura`) dan berpindah ke proyek berikutnya, isi dokumen ini dihapus dan diganti dengan TRD proyek baru.
+> **Aturan Rotasi:** Dokumen ini selalu diingat AI selama mengerjakan proyek/fitur aktif ini. Saat proyek/fitur ini selesai (`update sura`) dan berpindah ke proyek berikutnya, dokumen ini diarsipkan ke `sura-memory/TRD/archive/YYYY-MM-DD-<slug>/` dan TRD proyek baru dibuat dari template.
 
 | **Document Name** | **Document Link** |
 |---|---|

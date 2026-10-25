@@ -1,7 +1,7 @@
 # {{FEATURE_NAME}}
 
 > **Status Dokumen:** PRD Aktif (`sura-memory/TRD/PRD.md`)
-> **Aturan Rotasi:** Dokumen ini selalu diingat AI selama mengerjakan fitur/proyek aktif ini. Saat fitur/proyek ini selesai (`update sura`) dan berpindah ke fitur/proyek berikutnya, isi dokumen ini dihapus dan diganti dengan PRD proyek baru.
+> **Aturan Rotasi:** Dokumen ini selalu diingat AI selama mengerjakan fitur/proyek aktif ini. Saat fitur/proyek ini selesai (`update sura`) dan berpindah ke fitur/proyek berikutnya, dokumen ini diarsipkan ke `sura-memory/TRD/archive/YYYY-MM-DD-<slug>/` dan PRD proyek baru dibuat dari template.
 
 # Executive Summary
 

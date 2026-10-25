@@ -4,7 +4,7 @@ Dokumentasi detail dari setiap task yang dikerjakan.
 
 > ⚠️ **Batas Ukuran Hemat Token:** Simpan hanya **task aktif + maksimal 2 task selesai terakhir** di file ini.
 > Saat menjalankan **`"update sura"`**, pindahkan entri `Done` yang lebih lama ke `TASK_LOG.archive.md` — file arsip tidak dibaca otomatis oleh AI kecuali diminta eksplisit.
-> Saat berpindah dari **Proyek/Fitur A (Done)** ke **Proyek/Fitur B (Baru)**, hapus isi `sura-memory/TRD/PRD.md` dan `sura-memory/TRD/TRD.md` lama lalu ganti dengan spesifikasi Proyek/Fitur B.
+> Saat berpindah dari **Proyek/Fitur A (Done)** ke **Proyek/Fitur B (Baru)**, arsipkan `sura-memory/TRD/PRD.md` dan `sura-memory/TRD/TRD.md` lama ke `sura-memory/TRD/archive/YYYY-MM-DD-<slug>/`, lalu buat spesifikasi Proyek/Fitur B.
 
 ---
 

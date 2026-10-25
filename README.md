@@ -27,7 +27,7 @@ Bekerja bersama AI coding assistant (Antigravity, Gemini CLI, Claude Code, Curso
 | 🎯 **Adaptive Project Profile** | Mendukung pilihan Scope (`fullstack`, `backend`, `frontend`, `apidef`, `cli-lib`) & Mode Test (`strict-tdd`, `flexible`, `no-test`) | Aturan AI, template TRD, dan gerbang verifikasi otomatis menyesuaikan jenis proyek (pakai file test maupun tanpa test). |
 | 🗺️ **Graphify Engine** | Integrasi AST knowledge graph (`graphify-out/`) untuk analisis *Blast Radius* | AI memetakan relasi komponen dan file yang wajib/dilarang disentuh tanpa membaca puluhan file mentah. |
 | ⚡ **Superpowers Workflow** | Orkestrasi *brainstorming*, *TDD*, *systematic-debugging*, & *verification-before-completion* | Mencegah halusinasi dan memastikan setiap klaim selesai dibuktikan dengan output terminal nyata. |
-| 🛡️ **Zero Token Waste & Git Safe** | Filter `.ignore` universal + proteksi otomatis di `.git/info/exclude` | Memotong 70–80% konsumsi token dan **100% aman dari kebocoran ke PR/commit tim**. |
+| 🛡️ **Zero Token Waste & Git Safe** | Core rules ramping (~4.7 KB di `CLAUDE.md`) + protokol detail dimuat sebagai skill hanya saat dipakai + filter `.ignore` universal + proteksi `.git/info/exclude` | Biaya awal sesi kecil, AI tidak membaca sampah token, dan **100% aman dari kebocoran ke PR/commit tim**. |
 
 ---
 
@@ -54,8 +54,13 @@ bash ~/Sura-agentic/install.sh --non-interactive
 **Selesai!** Script akan otomatis:
 * ✅ Menyiapkan folder `sura-memory/` beserta seluruh template dokumen & subfolder (`TRD/`, `designs/`, `reviews/`, `lessons/`).
 * ✅ Memasang filter penghemat token (`.ignore`, `.cursorignore`, `.geminiignore`) tanpa menimpa kustomisasi yang sudah ada.
-* ✅ Meng-compile rule AI sesuai profil proyek untuk **Antigravity** (`.agents/rules/`), **Gemini CLI** (`GEMINI.md`), **Claude Code** (`CLAUDE.md` / `CLAUDE.local.md`), dan **Cursor** (`.cursor/rules/`).
+* ✅ Meng-compile rule AI sesuai profil proyek untuk **Antigravity** (`.agents/rules/`), **Gemini CLI** (`GEMINI.md`), **Claude Code** (`CLAUDE.md` / `CLAUDE.local.md` + `.claude/skills/sura-*`), dan **Cursor** (`.cursor/rules/`).
+* ✅ Membuat folder arsip `sura-memory/TRD/archive/` — PRD/TRD fitur yang selesai diarsipkan, tidak pernah dihapus.
 * ✅ Mengamankan seluruh konfigurasi ke `.git/info/exclude` (**0% risiko bocor ke Git tim**).
+
+### Claude Code vs Tool Lain
+- **Claude Code:** `CLAUDE.md` hanya berisi core (SOUL + RULES) dan override Superpowers. Protokol detail (`skills/sura-prd-trd`, `skills/sura-project-profile`, `skills/sura-graphify`) dipasang ke `.claude/skills/` dan baru dimuat saat relevan — mekanisme yang sama yang membuat Superpowers murah.
+- **Gemini CLI, Cursor, Antigravity:** belum ada mekanisme skill yang sama, jadi isi skill di-inline ke payload rule beserta checklist alur kerja ringkas (tanpa menyebut skill Superpowers yang tidak tersedia di sana).
 
 ---
 
@@ -78,14 +83,18 @@ bash ~/Sura-agentic/install.sh --non-interactive
 Sura-agentic/
 ├── install.sh                              # Installer 1-klik (interaktif & mendukung flag CLI)
 ├── README.md                               # Dokumentasi resmi
-├── rules/                                  # UNIVERSAL RULES — di-compile ke CLAUDE.md, GEMINI.md, .agents/, .cursor/
-│   ├── SOUL.md                             # Identitas Navigator Senior, 5 prinsip, kata kunci & jurus
-│   ├── RULES.md                            # Wajib/Dilarang, format langkah, & format penjelasan perintah 5-baris
-│   ├── prd-trd-protocol.md                 # Protokol pembuatan otomatis PRD, TRD, & Design Before Code
-│   ├── project-structure.md                # Adaptasi Scope (Fullstack/BE/FE/ApiDef) & Mode Test (TDD/Flexible/No-Test)
-│   ├── token-protocol.md                   # Aturan hemat token & manajemen arsip memori
-│   ├── graphify.md                         # Protokol eksplorasi arsitektur & blast radius via Graphify
-│   └── superpowers.md                      # Orkestrasi Superpowers terintegrasi dengan sura-memory/
+├── rules/
+│   ├── core/                               # SELALU DIMUAT semua tool
+│   │   ├── SOUL.md                         # Identitas Navigator Senior, 5 prinsip, kata kunci
+│   │   └── RULES.md                        # Wajib/Dilarang, format langkah, format penjelasan perintah 5-baris
+│   ├── claude/
+│   │   └── superpowers-overrides.md        # Hanya Claude Code: lokasi dokumen, gerbang TEST_MODE, advisor-strict
+│   └── inline/
+│       └── workflow-checklist.md           # Hanya Gemini/Cursor/Antigravity: checklist alur kerja ringkas
+├── skills/                                 # ON-DEMAND — ke .claude/skills/ (Claude), di-inline untuk tool lain
+│   ├── sura-prd-trd/SKILL.md               # baca/update sura, mode Existing/Greenfield, arsip, struktur PRD & TRD
+│   ├── sura-project-profile/SKILL.md       # Adaptasi PROJECT_SCOPE, TEST_MODE, multi-repo, peta sura-memory/
+│   └── sura-graphify/SKILL.md              # Eksplorasi arsitektur & blast radius via Graphify (bila graphify-out/ ada)
 ├── templates/                              # PER-PROYEK — disalin ke sura-memory/
 │   ├── README.template.md                  # Peta isi sura-memory & daftar sibling repository
 │   ├── MEMORY.template.md                  # Profil proyek, task aktif, batasan (constraints), glossary
@@ -101,6 +110,7 @@ Sura-agentic/
 ├── ignore/
 │   └── .ignore-template                    # Filter universal pemblokir sampah token
 └── tests/
+    ├── test-content.sh                     # Lint isi rules, skills, templates, README
     └── test-install.sh                     # Automated test suite untuk memverifikasi installer
 ```
 
@@ -109,7 +119,7 @@ Sura-agentic/
 ## 🧪 Menjalankan Pengujian Installer
 
 ```bash
-bash tests/test-install.sh
+bash tests/test-content.sh && bash tests/test-install.sh
 ```
 
 ---

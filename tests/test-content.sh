@@ -64,4 +64,12 @@ grep -q 'review' rules/core/RULES.md && grep -q 'refactor' rules/core/RULES.md |
 ! grep -rniE '(hapus|timpa|replace)[^.]*(PRD|TRD)' rules/ || fail "rules/ masih menyuruh hapus/timpa PRD/TRD"
 pass "Override superpowers lengkap, baca terarah default, arsip PRD/TRD"
 
+# 5. Templates & README follow the archive + on-demand skill model
+! grep -rniE '(hapus|dihapus|timpa|replace)[^.]*(PRD|TRD)' templates/ || fail "templates/ masih menyuruh hapus/timpa PRD/TRD"
+! grep -rn 'superpowers:' templates/ || fail "templates/ tidak boleh menyebut superpowers:"
+! grep -n '70–80%' README.md || fail "README masih memuat klaim 70–80% yang belum diukur"
+grep -q 'skills/sura-prd-trd' README.md || fail "README belum menjelaskan skills/"
+! grep -n 'rules/superpowers.md\|superpowers.md  ' README.md || fail "README masih menyebut rules/superpowers.md"
+pass "Template & README mengikuti arsip PRD/TRD dan skill on-demand"
+
 echo "🎉 All content lint passed!"
