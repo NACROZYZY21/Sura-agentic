@@ -38,16 +38,20 @@ O="$TMP_BASE/old"; N="$TMP_BASE/new"
 OM="$O/sura-memory"; NM="$N/sura-memory"
 OLD_CLAUDE="$(bytes "$O/CLAUDE.md")";  NEW_CLAUDE="$(bytes "$N/CLAUDE.md")"
 OLD_INLINE="$(bytes "$O/GEMINI.md")";  NEW_INLINE="$(bytes "$N/GEMINI.md")"
-# Old RULES required 5 files at session start; new core requires 3 (PRD/TRD only with an active task)
+# Old RULES required 5 project files at session start; new core requires 2 global + 3 project files
+# (PRD/TRD only with an active task)
 OLD_READ="$(bytes "$OM/MEMORY.md" "$OM/CONVENTIONS.md" "$OM/TASK_LOG.md" "$OM/TRD/PRD.md" "$OM/TRD/TRD.md")"
-NEW_READ="$(bytes "$NM/MEMORY.md" "$NM/CONVENTIONS.md" "$NM/TASK_LOG.md")"
-OLD_TOTAL=$((OLD_CLAUDE + OLD_READ)); NEW_TOTAL=$((NEW_CLAUDE + NEW_READ))
+NEW_READ="$(bytes "$HOME/.sura/profile.md" "$HOME/.sura/lessons.md" "$NM/MEMORY.md" "$NM/CONVENTIONS.md" "$NM/TASK_LOG.md")"
+# SessionStart hook output is injected automatically every Claude Code session
+NEW_HOOK="$(CLAUDE_PROJECT_DIR="$N" bash "$N/.claude/hooks/sura-session-start.sh" | wc -c | tr -d ' ')"
+OLD_TOTAL=$((OLD_CLAUDE + OLD_READ)); NEW_TOTAL=$((NEW_CLAUDE + NEW_HOOK + NEW_READ))
 
 table() {
   echo "| Dibaca AI di awal sesi | Sebelum refactor | Sekarang |"
   echo "|---|---|---|"
   echo "| \`CLAUDE.md\` (selalu dimuat) | $(kb "$OLD_CLAUDE") KB | $(kb "$NEW_CLAUDE") KB |"
-  echo "| File wajib saat \`baca sura\` | 5 file, $(kb "$OLD_READ") KB | 3 file, $(kb "$NEW_READ") KB |"
+  echo "| Hook \`SessionStart\` (otomatis) | — | $(kb "$NEW_HOOK") KB |"
+  echo "| File wajib saat \`baca sura\` | 5 file, $(kb "$OLD_READ") KB | 5 file (2 global + 3 proyek), $(kb "$NEW_READ") KB |"
   echo "| **Total awal sesi (Claude Code)** | **$(kb "$OLD_TOTAL") KB ≈ $(tok "$OLD_TOTAL") token** | **$(kb "$NEW_TOTAL") KB ≈ $(tok "$NEW_TOTAL") token** |"
   echo "| \`GEMINI.md\` / Cursor / Antigravity (selalu dimuat) | $(kb "$OLD_INLINE") KB | $(kb "$NEW_INLINE") KB |"
 }
