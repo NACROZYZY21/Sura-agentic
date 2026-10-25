@@ -131,7 +131,7 @@ echo "  🎯 Project Profile → Scope: [$PROJECT_SCOPE] | Test Mode: [$TEST_MOD
 # 1. Setup sura-memory/ Directory & Complete Sawitpro-Style Ecosystem
 # ------------------------------------------------------------------------------
 MEMORY_DIR="$TARGET_FULL_PATH/sura-memory"
-mkdir -p "$MEMORY_DIR/TRD" "$MEMORY_DIR/designs" "$MEMORY_DIR/reviews" "$MEMORY_DIR/lessons"
+mkdir -p "$MEMORY_DIR/TRD/archive" "$MEMORY_DIR/designs" "$MEMORY_DIR/reviews" "$MEMORY_DIR/lessons"
 
 # Double safety net: local .gitignore inside sura-memory/
 if [ ! -f "$MEMORY_DIR/.gitignore" ]; then
@@ -194,20 +194,49 @@ done
 # ------------------------------------------------------------------------------
 # 3. Setup AI Rules for Antigravity, Gemini CLI, Cursor, & Claude Code
 # ------------------------------------------------------------------------------
-RULE_FILES=(
-  "$SCRIPT_DIR/rules/SOUL.md"
-  "$SCRIPT_DIR/rules/RULES.md"
-  "$SCRIPT_DIR/rules/prd-trd-protocol.md"
-  "$SCRIPT_DIR/rules/project-structure.md"
-  "$SCRIPT_DIR/rules/token-protocol.md"
-  "$SCRIPT_DIR/rules/graphify.md"
-  "$SCRIPT_DIR/rules/superpowers.md"
-)
+# Core selalu dimuat semua tool. Claude Code memuat protokol detail sebagai skill
+# on-demand; tool lain (tanpa mekanisme skill) menerima isinya secara inline.
+strip_frontmatter() {
+  awk 'NR==1 && $0=="---" {fm=1; next} fm && $0=="---" {fm=0; next} !fm' "$1"
+}
 
-build_rules_payload() {
+build_core_payload() {
   printf "<!-- SURA-AGENTIC-AUTO-GENERATED -->\n"
   printf "> **Active Project Profile:** \`PROJECT_SCOPE=%s\` | \`TEST_MODE=%s\`\n\n" "$PROJECT_SCOPE" "$TEST_MODE"
-  cat "${RULE_FILES[@]}"
+  cat "$SCRIPT_DIR/rules/core/SOUL.md"
+  printf "\n"
+  cat "$SCRIPT_DIR/rules/core/RULES.md"
+}
+
+build_claude_payload() {
+  build_core_payload
+  printf "\n"
+  cat "$SCRIPT_DIR/rules/claude/superpowers-overrides.md"
+  printf "\n> Protokol detail (sura-prd-trd, sura-project-profile, sura-graphify) dimuat otomatis sebagai skill dari .claude/skills/.\n"
+}
+
+build_inline_payload() {
+  build_core_payload
+  local skill
+  for skill in "$SCRIPT_DIR"/skills/*/SKILL.md; do
+    printf "\n"
+    strip_frontmatter "$skill"
+  done
+  printf "\n"
+  cat "$SCRIPT_DIR/rules/inline/workflow-checklist.md"
+}
+
+# Hanya folder sura-* milik kita yang diganti; skill lain di .claude/skills/ tidak disentuh.
+SKILL_EXCLUDES=()
+install_claude_skills() {
+  local src name
+  mkdir -p "$TARGET_FULL_PATH/.claude/skills"
+  for src in "$SCRIPT_DIR"/skills/*/; do
+    name="$(basename "$src")"
+    rm -rf "$TARGET_FULL_PATH/.claude/skills/$name"
+    cp -R "$src" "$TARGET_FULL_PATH/.claude/skills/$name"
+    SKILL_EXCLUDES+=(".claude/skills/$name/")
+  done
 }
 
 # Gemini CLI membaca GEMINI.md di root (hierarkis)
@@ -217,11 +246,11 @@ if [ -f "$TARGET_FULL_PATH/GEMINI.md" ] && ! grep -q "SURA-AGENTIC-AUTO-GENERATE
 else
   GEMINI_FILE="GEMINI.md"
 fi
-build_rules_payload > "$TARGET_FULL_PATH/$GEMINI_FILE"
+build_inline_payload > "$TARGET_FULL_PATH/$GEMINI_FILE"
 
 # Antigravity membaca .agents/rules/ (plural)
 mkdir -p "$TARGET_FULL_PATH/.agents/rules"
-build_rules_payload > "$TARGET_FULL_PATH/.agents/rules/agentic-sop.md"
+build_inline_payload > "$TARGET_FULL_PATH/.agents/rules/agentic-sop.md"
 
 # Bersihkan jalur lama yang tidak pernah dibaca tool manapun
 if [ -f "$TARGET_FULL_PATH/.gemini/rules/agentic-sop.md" ]; then
@@ -234,7 +263,7 @@ fi
 mkdir -p "$TARGET_FULL_PATH/.cursor/rules"
 {
   printf -- '---\ndescription: Sura Protocol - SOP pair-programming (Scope: %s, Test: %s)\nalwaysApply: true\n---\n\n' "$PROJECT_SCOPE" "$TEST_MODE"
-  build_rules_payload
+  build_inline_payload
 } > "$TARGET_FULL_PATH/.cursor/rules/agentic-sop.mdc"
 
 # Claude Code membaca CLAUDE.md / CLAUDE.local.md di root. Jangan pernah menimpa milik tim.
@@ -244,16 +273,17 @@ if [ -f "$TARGET_FULL_PATH/CLAUDE.md" ] && ! grep -q "SURA-AGENTIC-AUTO-GENERATE
 else
   CLAUDE_FILE="CLAUDE.md"
 fi
-build_rules_payload > "$TARGET_FULL_PATH/$CLAUDE_FILE"
+build_claude_payload > "$TARGET_FULL_PATH/$CLAUDE_FILE"
+install_claude_skills
 
-echo "  ✅ Configured AI Rules → $CLAUDE_FILE, $GEMINI_FILE, .cursor/rules/, .agents/rules/"
+echo "  ✅ Configured AI Rules → $CLAUDE_FILE, .claude/skills/, $GEMINI_FILE, .cursor/rules/, .agents/rules/"
 
 # ------------------------------------------------------------------------------
 # 4. Protect Everything in Local Git Exclude (Zero Risk of PR Leakage)
 # ------------------------------------------------------------------------------
 if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
   GIT_EXCLUDE="$TARGET_FULL_PATH/.git/info/exclude"
-  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" ".agents/rules/" ".cursor/rules/" "$CLAUDE_FILE" "$GEMINI_FILE"; do
+  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" ".agents/rules/" ".cursor/rules/" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}"; do
     if [ -n "$pattern" ] && ! grep -qxF "$pattern" "$GIT_EXCLUDE" 2>/dev/null; then
       echo "$pattern" >> "$GIT_EXCLUDE"
     fi
