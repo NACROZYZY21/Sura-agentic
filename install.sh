@@ -17,6 +17,7 @@ UNINSTALL=false
 PURGE=false
 UPGRADE=false
 PLUGIN_MODE=false
+REPLIT_MODE=false
 
 usage() {
   cat <<EOF
@@ -29,6 +30,7 @@ Options:
   --with-deps           Install missing Superpowers & Graphify without asking
   --no-deps             Skip the Superpowers & Graphify check entirely
   --upgrade             Refresh rules/skills/hooks with the saved profile; template changes become diffs in sura-memory/.upgrade/
+  --replit              Also write the Sura block into replit.md (auto when .replit or $REPL_ID exists)
   --plugin              Claude Code plugin mode: only sura-memory/, .ignore, ~/.sura (rules/hooks come from the plugin)
   --uninstall           Remove everything Sura installed (keeps sura-memory/ and ~/.sura)
   --purge               With --uninstall: also delete sura-memory/
@@ -66,6 +68,10 @@ while [[ $# -gt 0 ]]; do
       PURGE=true
       shift
       ;;
+    --replit)
+      REPLIT_MODE=true
+      shift
+      ;;
     --plugin)
       PLUGIN_MODE=true
       shift
@@ -96,6 +102,33 @@ cd "$TARGET_DIR"
 TARGET_FULL_PATH="$(pwd)"
 
 MARKER="SURA-AGENTIC-AUTO-GENERATED"
+BLOCK_START="<!-- SURA:START -->"
+BLOCK_END="<!-- SURA:END -->"
+
+# Replit Agent ikut menulis replit.md, jadi Sura hanya mengelola satu blok bertanda di dalamnya.
+# write_block <file> <content-file>: ganti blok yang ada, atau tambahkan di akhir file.
+write_block() {
+  local file="$1" content="$2"
+  if [ -f "$file" ] && grep -qxF "$BLOCK_START" "$file" && grep -qxF "$BLOCK_END" "$file"; then
+    awk -v s="$BLOCK_START" -v e="$BLOCK_END" -v cf="$content" '
+      $0 == s { print; while ((getline line < cf) > 0) print line; skip = 1; next }
+      $0 == e { skip = 0 }
+      !skip' "$file" > "$file.tmp"
+  else
+    { if [ -s "$file" ]; then cat "$file"; echo; fi; echo "$BLOCK_START"; cat "$content"; echo "$BLOCK_END"; } > "$file.tmp"
+  fi
+  mv "$file.tmp" "$file"
+}
+
+# remove_block <file>: cabut blok Sura; hapus file bila tidak tersisa isi apa pun
+remove_block() {
+  local file="$1"
+  [ -f "$file" ] && grep -qxF "$BLOCK_START" "$file" || return 0
+  awk -v s="$BLOCK_START" -v e="$BLOCK_END" '$0 == s { skip = 1 } !skip; $0 == e { skip = 0 }' "$file" > "$file.tmp"
+  mv "$file.tmp" "$file"
+  if ! grep -q '[^[:space:]]' "$file"; then rm -f "$file"; fi
+  echo "  🗑️  blok Sura di ${file#"$TARGET_FULL_PATH"/}"
+}
 
 # Isi ignore file persis seperti saat dibuat installer — dipakai juga oleh uninstall
 # untuk mengenali file yang belum dikustomisasi.
@@ -128,6 +161,7 @@ do_uninstall() {
     rm -rf "$f"
     echo "  🗑️  ${f#"$TARGET_FULL_PATH"/}"
   done
+  remove_block "$TARGET_FULL_PATH/replit.md"
   if [ -f "$TARGET_FULL_PATH/.claude/settings.local.json" ] && command -v python3 >/dev/null 2>&1; then
     python3 "$SCRIPT_DIR/hooks/merge-settings.py" remove "$TARGET_FULL_PATH/.claude/settings.local.json"
     echo "  🧽 Hook Sura dicabut dari .claude/settings.local.json"
@@ -151,7 +185,7 @@ do_uninstall() {
   if [ -f "$exclude" ]; then
     local keep='^$'
     [ "$PURGE" = true ] || keep='^sura-memory/$'
-    grep -vxE '\.ignore|\.cursorignore|\.geminiignore|(CLAUDE|GEMINI)(\.local)?\.md|\.claude/settings\.local\.json|sura-memory/|\.claude/skills/sura-[^/]+/|\.claude/hooks/sura-[^/]+|\.(agents|cursor)/rules/((sura-)?agentic-sop\.mdc?)?' "$exclude" > "$exclude.tmp" || true
+    grep -vxE '\.ignore|\.cursorignore|\.geminiignore|(CLAUDE|GEMINI)(\.local)?\.md|\.claude/settings\.local\.json|replit\.md|sura-memory/|\.claude/skills/sura-[^/]+/|\.claude/hooks/sura-[^/]+|\.(agents|cursor)/rules/((sura-)?agentic-sop\.mdc?)?' "$exclude" > "$exclude.tmp" || true
     grep -xE "$keep" "$exclude" >> "$exclude.tmp" || true
     mv "$exclude.tmp" "$exclude"
   fi
@@ -365,7 +399,7 @@ done
 # ------------------------------------------------------------------------------
 # 3. Setup AI Rules for Antigravity, Gemini CLI, Cursor, & Claude Code
 # ------------------------------------------------------------------------------
-CLAUDE_FILE=""; GEMINI_FILE=""; AGENTS_FILE=""; CURSOR_FILE=""
+REPLIT_FILE=""; CLAUDE_FILE=""; GEMINI_FILE=""; AGENTS_FILE=""; CURSOR_FILE=""
 SKILL_EXCLUDES=(); HOOK_EXCLUDES=()
 if [ "$PLUGIN_MODE" = true ]; then
   echo "  🔌 Mode plugin: rules, skill, dan hook disediakan plugin Claude Code 'sura' — tidak ada file rules di repo"
@@ -488,6 +522,20 @@ build_claude_payload > "$TARGET_FULL_PATH/$CLAUDE_FILE"
 install_claude_skills
 install_claude_hooks
 
+# Replit Agent membaca replit.md (bukan CLAUDE.md/AGENTS.md)
+REPLIT_FILE=""
+if [ "$REPLIT_MODE" = true ] || [ -f "$TARGET_FULL_PATH/.replit" ] || [ -n "${REPL_ID:-}" ]; then
+  if [ ! -f "$TARGET_FULL_PATH/replit.md" ]; then
+    REPLIT_FILE="replit.md"
+  elif [ -d "$TARGET_FULL_PATH/.git" ] && git -C "$TARGET_FULL_PATH" ls-files --error-unmatch replit.md >/dev/null 2>&1; then
+    echo "  ⚠️  replit.md di-track git → blok Sura akan ikut ter-commit"
+  fi
+  build_inline_payload > "$TARGET_FULL_PATH/.sura-replit-block.tmp"
+  write_block "$TARGET_FULL_PATH/replit.md" "$TARGET_FULL_PATH/.sura-replit-block.tmp"
+  rm -f "$TARGET_FULL_PATH/.sura-replit-block.tmp"
+  echo "  ✅ Configured Replit → blok Sura di replit.md (catatan Replit Agent tidak disentuh)"
+fi
+
 echo "  ✅ Configured AI Rules → $CLAUDE_FILE, .claude/skills/, .claude/hooks/, $GEMINI_FILE, .cursor/rules/, .agents/rules/"
 fi
 
@@ -502,7 +550,7 @@ if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
     mv "$GIT_EXCLUDE.tmp" "$GIT_EXCLUDE"
     echo "  🧹 Exclude lama .agents/rules/ & .cursor/rules/ diganti per file"
   fi
-  for pattern in "sura-memory/" "${IGNORE_FILES[@]}" "$AGENTS_FILE" "$CURSOR_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}" "${HOOK_EXCLUDES[@]}"; do
+  for pattern in "sura-memory/" "${IGNORE_FILES[@]}" "$AGENTS_FILE" "$CURSOR_FILE" "$REPLIT_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}" "${HOOK_EXCLUDES[@]}"; do
     if [ -n "$pattern" ] && ! grep -qxF "$pattern" "$GIT_EXCLUDE" 2>/dev/null; then
       echo "$pattern" >> "$GIT_EXCLUDE"
     fi

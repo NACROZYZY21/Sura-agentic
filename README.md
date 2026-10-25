@@ -111,6 +111,20 @@ Terdaftar di `.claude/settings.local.json` (pribadi; bila file itu di-track git 
 - **`SessionStart`** — tiap sesi dibuka, profil `~/.sura/`, task aktif, dan batasan proyek disuntikkan otomatis (diam di proyek tanpa `sura-memory/`). `baca sura` tetap dipakai untuk memuat PRD/TRD lengkap.
 - **`PreToolUse`** — membaca `node_modules/`, `vendor/`, cache compiler, `*.log`, dan `*-audit.json` diblokir oleh harness, bukan sekadar diminta lewat aturan.
 
+### Replit
+Replit Agent membaca `replit.md` (bukan `CLAUDE.md`/`AGENTS.md`) dan ikut menulis file itu sendiri. Karena itu Sura hanya mengelola **satu blok bertanda** di dalamnya:
+
+```markdown
+<!-- SURA:START -->
+...rules & protokol Sura...
+<!-- SURA:END -->
+```
+
+- Ditulis otomatis bila proyek punya `.replit` (atau variabel `REPL_ID`), atau paksa dengan `--replit`.
+- Catatan Replit Agent di luar blok tidak pernah disentuh.
+- Bila Agent menghapus blok, `install.sh --upgrade` memasangnya kembali; `--uninstall` hanya mencabut blok itu.
+- Jalankan installer dari Shell Replit setelah `git clone https://github.com/NACROZYZY21/Sura-agentic.git ~/Sura-agentic`.
+
 ### Claude Code vs Tool Lain
 - **Claude Code:** `CLAUDE.md` hanya berisi core (SOUL + RULES) dan override Superpowers. Protokol detail (`skills/sura-prd-trd`, `skills/sura-project-profile`, `skills/sura-graphify`) dipasang ke `.claude/skills/` dan baru dimuat saat relevan — mekanisme yang sama yang membuat Superpowers murah.
 - **Gemini CLI, Cursor, Antigravity:** belum ada mekanisme skill yang sama, jadi isi skill di-inline ke payload rule beserta checklist alur kerja ringkas (tanpa menyebut skill Superpowers yang tidak tersedia di sana).

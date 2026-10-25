@@ -113,6 +113,9 @@ jq -e '[.hooks.SessionStart[].hooks[].command | select(test("sura-session-start"
 jq -e '[.hooks.PreToolUse[] | select(.matcher == "Read|Grep|Glob") | .hooks[].command | select(test("sura-block-noise"))] | length == 1' "$SETTINGS_1" >/dev/null \
   || { echo "  ❌ [FAIL] hook PreToolUse tidak terdaftar"; exit 1; }
 
+# Non-Replit projects never get replit.md
+[ ! -e "$TEST_DIR_1/replit.md" ] || { echo "  ❌ [FAIL] replit.md dibuat di proyek non-Replit"; exit 1; }
+
 # Verify archive dir & ignore entry
 [ -d "$TEST_DIR_1/sura-memory/TRD/archive" ]
 grep -qxF 'sura-memory/TRD/archive/' "$TEST_DIR_1/.ignore"
@@ -214,6 +217,38 @@ for gone in CLAUDE.md CLAUDE.local.md GEMINI.md .cursor .agents .claude .cursori
 done
 [ -z "$(git -C "$TEST_DIR_P" status --porcelain -uall)" ] || { echo "  ❌ [FAIL] mode plugin bocor ke git"; git -C "$TEST_DIR_P" status --porcelain -uall; exit 1; }
 echo "  ✅ [PASS] Mode plugin: hanya sura-memory/, .ignore, ~/.sura — tanpa file rules di repo"
+
+# Replit: one marked block inside replit.md; Replit Agent's own notes are never touched
+TEST_DIR_R="$TMP_BASE/proj-replit"
+mkdir -p "$TEST_DIR_R"; git -C "$TEST_DIR_R" init -q
+echo 'run = "npm start"' > "$TEST_DIR_R/.replit"
+printf '# Overview\nCatatan dari Replit Agent\n' > "$TEST_DIR_R/replit.md"
+count_blocks() { grep -cxF '<!-- SURA:START -->' "$1" | tr -d ' '; }
+bash "$INSTALLER" "$TEST_DIR_R" --scope frontend --test no-test --no-deps >/dev/null < /dev/null
+R="$TEST_DIR_R/replit.md"
+grep -qxF 'Catatan dari Replit Agent' "$R" || { echo "  ❌ [FAIL] catatan Replit Agent hilang"; exit 1; }
+[ "$(count_blocks "$R")" = 1 ] && grep -qxF '<!-- SURA:END -->' "$R" || { echo "  ❌ [FAIL] blok Sura tidak tepat satu"; exit 1; }
+grep -qF '# Sura Protocol' "$R" && grep -qF 'Siklus Hidup "Satu Fitur Aktif"' "$R" || { echo "  ❌ [FAIL] isi rules/skill tidak ada di blok"; exit 1; }
+grep -qF 'PROJECT_SCOPE=frontend' "$R" || { echo "  ❌ [FAIL] profil proyek tidak ada di blok"; exit 1; }
+if grep -q 'superpowers:' "$R"; then echo "  ❌ [FAIL] replit.md menyebut skill superpowers"; exit 1; fi
+bash "$INSTALLER" "$TEST_DIR_R" --scope frontend --test no-test --no-deps >/dev/null < /dev/null
+[ "$(count_blocks "$R")" = 1 ] || { echo "  ❌ [FAIL] re-run menggandakan blok Sura"; exit 1; }
+awk '/^<!-- SURA:START -->$/{s=1} !s; /^<!-- SURA:END -->$/{s=0}' "$R" > "$R.tmp" && mv "$R.tmp" "$R"
+echo "Catatan baru dari Agent" >> "$R"
+bash "$INSTALLER" "$TEST_DIR_R" --upgrade --no-deps >/dev/null < /dev/null
+[ "$(count_blocks "$R")" = 1 ] || { echo "  ❌ [FAIL] --upgrade tidak memasang ulang blok yang dihapus Agent"; exit 1; }
+grep -qxF 'Catatan baru dari Agent' "$R" || { echo "  ❌ [FAIL] --upgrade menghapus catatan Agent"; exit 1; }
+bash "$INSTALLER" "$TEST_DIR_R" --uninstall >/dev/null < /dev/null
+[ "$(count_blocks "$R")" = 0 ] || { echo "  ❌ [FAIL] uninstall tidak mencabut blok Sura"; exit 1; }
+grep -qxF 'Catatan dari Replit Agent' "$R" && grep -qxF 'Catatan baru dari Agent' "$R" || { echo "  ❌ [FAIL] uninstall menghapus catatan Agent"; exit 1; }
+TEST_DIR_RF="$TMP_BASE/proj-replit-flag"
+mkdir -p "$TEST_DIR_RF"; git -C "$TEST_DIR_RF" init -q
+bash "$INSTALLER" "$TEST_DIR_RF" --replit --non-interactive --no-deps >/dev/null < /dev/null
+[ "$(count_blocks "$TEST_DIR_RF/replit.md")" = 1 ] || { echo "  ❌ [FAIL] --replit tidak membuat replit.md"; exit 1; }
+[ -z "$(git -C "$TEST_DIR_RF" status --porcelain -uall)" ] || { echo "  ❌ [FAIL] replit.md buatan Sura bocor ke git"; exit 1; }
+bash "$INSTALLER" "$TEST_DIR_RF" --uninstall >/dev/null < /dev/null
+[ ! -e "$TEST_DIR_RF/replit.md" ] || { echo "  ❌ [FAIL] uninstall menyisakan replit.md kosong buatan Sura"; exit 1; }
+echo "  ✅ [PASS] Replit: blok bertanda di replit.md, catatan Agent aman, upgrade memulihkan, uninstall mencabut"
 
 # Uninstall: remove only Sura's files; keep team files, notes (sura-memory/) and ~/.sura
 TEST_DIR_U="$TMP_BASE/proj-uninstall"
