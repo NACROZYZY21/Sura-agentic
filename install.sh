@@ -238,7 +238,7 @@ fi
 echo "  🎯 Project Profile → Scope: [$PROJECT_SCOPE] | Test Mode: [$TEST_MODE]"
 
 # ------------------------------------------------------------------------------
-# 1. Setup sura-memory/ Directory & Complete Sawitpro-Style Ecosystem
+# 1. Setup sura-memory/ Directory & Complete Memory Ecosystem
 # ------------------------------------------------------------------------------
 MEMORY_DIR="$TARGET_FULL_PATH/sura-memory"
 mkdir -p "$MEMORY_DIR/TRD/archive" "$MEMORY_DIR/designs" "$MEMORY_DIR/reviews" "$MEMORY_DIR/lessons"

@@ -22,7 +22,7 @@ Bekerja bersama AI coding assistant (Antigravity, Gemini CLI, Claude Code, Curso
 
 | Pilar | Deskripsi | Manfaat |
 |---|---|---|
-| 🧠 **Sawitpro-Grade Memory** | Ekosistem `sura-memory/` lengkap (`MEMORY`, `CONVENTIONS`, `COMMANDS`, `SKILL`, `DESIGN_BEFORE_CODE`, `PR_REVIEW_PLAYBOOK`, `TASK_LOG`, `TRD/`, `designs/`, `reviews/`, `lessons/`) | AI langsung paham konteks proyek & rantai kerja lintas repo tanpa perlu dijelaskan dari nol. |
+| 🧠 **Production-Grade Memory** | Ekosistem `sura-memory/` lengkap (`MEMORY`, `CONVENTIONS`, `COMMANDS`, `SKILL`, `DESIGN_BEFORE_CODE`, `PR_REVIEW_PLAYBOOK`, `TASK_LOG`, `TRD/`, `designs/`, `reviews/`, `lessons/`) | AI langsung paham konteks proyek & rantai kerja lintas repo tanpa perlu dijelaskan dari nol. |
 | 📋 **Auto PRD & TRD Engine** | Otomatis menghasilkan dokumen `PRD` & `TRD` standar industri dari hasil diskusi sebelum ngoding dimulai, lalu disinkronkan saat `update sura` | Setiap fitur memiliki spesifikasi bisnis (User Story, Metrics) dan teknis (Sequence Diagram, API, Blast Radius, Story Points) yang rapi. |
 | 🎯 **Adaptive Project Profile** | Mendukung pilihan Scope (`fullstack`, `backend`, `frontend`, `apidef`, `cli-lib`) & Mode Test (`strict-tdd`, `flexible`, `no-test`) | Aturan AI, template TRD, dan gerbang verifikasi otomatis menyesuaikan jenis proyek (pakai file test maupun tanpa test). |
 | 🗺️ **Graphify Engine** | Integrasi AST knowledge graph (`graphify-out/`) untuk analisis *Blast Radius* | AI memetakan relasi komponen dan file yang wajib/dilarang disentuh tanpa membaca puluhan file mentah. |

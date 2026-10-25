@@ -89,4 +89,8 @@ grep -qi 'persetujuan' skills/sura-prd-trd/SKILL.md || fail "promosi pelajaran u
 ! grep -n 'DEVELOPER_NAME' templates/MEMORY.template.md || fail "MEMORY.template masih memuat profil developer"
 pass "Lapis profil global ~/.sura (profil, pelajaran umum lewat persetujuan)"
 
+# 7. No employer branding in the repo
+! git -C "$REPO_ROOT" grep -n -i 'sawit' -- . ':!docs' ':!tests/test-content.sh' || fail "repo masih menyebut nama perusahaan (sawit...)"
+pass "Tanpa nama perusahaan"
+
 echo "🎉 All content lint passed!"
