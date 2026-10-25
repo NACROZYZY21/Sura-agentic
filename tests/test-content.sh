@@ -40,4 +40,28 @@ for old in rules/prd-trd-protocol.md rules/project-structure.md rules/graphify.m
 done
 pass "File protokol lama sudah dipindah"
 
+# 4. Slim core + per-tool variants
+CORE_FILES=(rules/core/SOUL.md rules/core/RULES.md rules/claude/superpowers-overrides.md rules/inline/workflow-checklist.md)
+for f in "${CORE_FILES[@]}"; do
+  [ -f "$f" ] || fail "$f tidak ada"
+done
+for old in rules/SOUL.md rules/RULES.md rules/superpowers.md rules/token-protocol.md; do
+  [ ! -e "$old" ] || fail "$old seharusnya sudah diganti"
+done
+max_lines() { [ "$(wc -l < "$1")" -le "$2" ] || fail "$1 lebih dari $2 baris ($(wc -l < "$1"))"; }
+max_lines rules/core/SOUL.md 25
+max_lines rules/core/RULES.md 45
+max_lines rules/claude/superpowers-overrides.md 15
+max_lines rules/inline/workflow-checklist.md 15
+pass "Core ramping & varian per tool ada dalam batas baris"
+
+! grep -rn 'superpowers:' rules/core rules/inline || fail "superpowers: hanya boleh di rules/claude/"
+grep -q 'sura-memory/designs/' rules/claude/superpowers-overrides.md || fail "override lokasi plan hilang"
+grep -q 'no-test' rules/claude/superpowers-overrides.md || fail "override gerbang TEST_MODE hilang"
+grep -q 'lanjut' rules/claude/superpowers-overrides.md || fail "override advisor-strict hilang"
+! grep -rn 'lebih dari 100 baris\|> 100 baris' rules/ || fail "rules/ masih melarang baca > 100 baris"
+grep -q 'review' rules/core/RULES.md && grep -q 'refactor' rules/core/RULES.md || fail "pengecualian baca utuh (review/refactor) hilang"
+! grep -rniE '(hapus|timpa|replace)[^.]*(PRD|TRD)' rules/ || fail "rules/ masih menyuruh hapus/timpa PRD/TRD"
+pass "Override superpowers lengkap, baca terarah default, arsip PRD/TRD"
+
 echo "🎉 All content lint passed!"
