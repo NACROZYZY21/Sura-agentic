@@ -69,6 +69,8 @@ grep -q 'aturan tim' rules/core/RULES.md || fail "aturan 'tim menang' hilang dar
 ! grep -rn 'lebih dari 100 baris\|> 100 baris' rules/ || fail "rules/ masih melarang baca > 100 baris"
 grep -q 'review' rules/core/RULES.md && grep -q 'refactor' rules/core/RULES.md || fail "pengecualian baca utuh (review/refactor) hilang"
 ! grep -rniE '(hapus|timpa|replace)[^.]*(PRD|TRD)' rules/ || fail "rules/ masih menyuruh hapus/timpa PRD/TRD"
+grep -qF 'build prd' rules/claude/superpowers-overrides.md && grep -qF 'superpowers:brainstorming' rules/claude/superpowers-overrides.md \
+  || fail "build prd harus memakai superpowers:brainstorming di Claude Code"
 pass "Override superpowers lengkap, baca terarah default, arsip PRD/TRD"
 
 # 5. Templates & README follow the archive + on-demand skill model

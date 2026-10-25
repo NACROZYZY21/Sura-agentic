@@ -128,6 +128,7 @@ for pat in '.cursor/rules/' '.agents/rules/'; do
 done
 grep -qxF '.cursor/rules/agentic-sop.mdc' "$TEST_DIR_1/.git/info/exclude"
 grep -qxF '.agents/rules/agentic-sop.md' "$TEST_DIR_1/.git/info/exclude"
+grep -qxF 'graphify-out/' "$TEST_DIR_1/.git/info/exclude" || { echo "  ❌ [FAIL] index graphify-out/ tidak dilindungi dari git"; exit 1; }
 echo "  ✅ [PASS] Payload per tool (CLAUDE.md ramping, skill terpasang, inline untuk tool lain)"
 
 # Verify zero git leakage (excluding dummy go.mod)
@@ -294,6 +295,12 @@ if git -C "$TEST_DIR_U" status --porcelain -uall | grep -q 'sura-memory'; then e
 bash "$INSTALLER" "$TEST_DIR_U" --uninstall --purge >/dev/null < /dev/null
 [ ! -e "$TEST_DIR_U/sura-memory" ] || { echo "  ❌ [FAIL] --purge tidak menghapus sura-memory/"; exit 1; }
 if grep -qxF 'sura-memory/' "$TEST_DIR_U/.git/info/exclude"; then echo "  ❌ [FAIL] --purge menyisakan exclude sura-memory/"; exit 1; fi
+TEST_DIR_GX="$TMP_BASE/proj-graphify-index"
+mkdir -p "$TEST_DIR_GX"; git -C "$TEST_DIR_GX" init -q
+bash "$INSTALLER" "$TEST_DIR_GX" --plugin --non-interactive --no-deps >/dev/null < /dev/null
+mkdir -p "$TEST_DIR_GX/graphify-out"; echo '{}' > "$TEST_DIR_GX/graphify-out/graph.json"
+bash "$INSTALLER" "$TEST_DIR_GX" --uninstall >/dev/null < /dev/null
+grep -qxF 'graphify-out/' "$TEST_DIR_GX/.git/info/exclude" || { echo "  ❌ [FAIL] uninstall membuka index graphify-out/ ke git"; exit 1; }
 echo "  ✅ [PASS] Uninstall: hanya file Sura dicabut; file tim, sura-memory/, ~/.sura aman; --purge hapus catatan"
 
 # Upgrade: refresh payload with the saved profile, surface template changes as diffs, never overwrite notes

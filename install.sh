@@ -185,8 +185,12 @@ do_uninstall() {
   if [ -f "$exclude" ]; then
     local keep='^$'
     [ "$PURGE" = true ] || keep='^sura-memory/$'
-    grep -vxE '\.ignore|\.cursorignore|\.geminiignore|(CLAUDE|GEMINI)(\.local)?\.md|\.claude/settings\.local\.json|replit\.md|sura-memory/|\.claude/skills/sura-[^/]+/|\.claude/hooks/sura-[^/]+|\.(agents|cursor)/rules/((sura-)?agentic-sop\.mdc?)?' "$exclude" > "$exclude.tmp" || true
+    grep -vxE '\.ignore|\.cursorignore|\.geminiignore|(CLAUDE|GEMINI)(\.local)?\.md|\.claude/settings\.local\.json|replit\.md|sura-memory/|graphify-out/|\.claude/skills/sura-[^/]+/|\.claude/hooks/sura-[^/]+|\.(agents|cursor)/rules/((sura-)?agentic-sop\.mdc?)?' "$exclude" > "$exclude.tmp" || true
     grep -xE "$keep" "$exclude" >> "$exclude.tmp" || true
+    # Index Graphify yang masih ada tetap disembunyikan dari git
+    if [ -d "$TARGET_FULL_PATH/graphify-out" ] && grep -qxF 'graphify-out/' "$exclude"; then
+      echo 'graphify-out/' >> "$exclude.tmp"
+    fi
     mv "$exclude.tmp" "$exclude"
   fi
   echo ""
@@ -565,7 +569,7 @@ if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
     mv "$GIT_EXCLUDE.tmp" "$GIT_EXCLUDE"
     echo "  🧹 Exclude lama .agents/rules/ & .cursor/rules/ diganti per file"
   fi
-  for pattern in "sura-memory/" "${IGNORE_FILES[@]}" "$AGENTS_FILE" "$CURSOR_FILE" "$REPLIT_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}" "${HOOK_EXCLUDES[@]}"; do
+  for pattern in "sura-memory/" "graphify-out/" "${IGNORE_FILES[@]}" "$AGENTS_FILE" "$CURSOR_FILE" "$REPLIT_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}" "${HOOK_EXCLUDES[@]}"; do
     if [ -n "$pattern" ] && ! grep -qxF "$pattern" "$GIT_EXCLUDE" 2>/dev/null; then
       echo "$pattern" >> "$GIT_EXCLUDE"
     fi

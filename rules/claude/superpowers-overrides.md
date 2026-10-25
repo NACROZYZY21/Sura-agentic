@@ -7,6 +7,7 @@ Skill Superpowers menentukan proses; aturan di bawah hanya mengganti default-nya
    - `strict-tdd` → `superpowers:test-driven-development` wajib.
    - `flexible` → test hanya untuk logika bisnis krusial.
    - `no-test` → jangan jalankan `superpowers:test-driven-development`; `superpowers:verification-before-completion` memakai build + lint + checklist manual.
-3. **`/sura:execute`:** bila Superpowers ada, buat plan dengan `superpowers:writing-plans` dari TRD lalu jalankan dengan `superpowers:executing-plans` (gerbang `TEST_MODE` & advisor-strict tetap berlaku).
-4. **Bila skill Superpowers tidak tersedia:** ikuti alur diskusi → PRD/TRD → plan bertahap → implementasi sesuai `TEST_MODE` → root cause dari bukti → verifikasi dengan output terminal.
-5. **Advisor-strict menang:** `superpowers:executing-plans` / `superpowers:subagent-driven-development` tetap menunggu "lanjut" / "eksekusi" sebelum mengubah file.
+3. **`build prd` / `/sura:build-prd`:** diskusinya memakai `superpowers:brainstorming`; hasil yang disetujui ditulis ke `sura-memory/TRD/PRD.md` (bukan file spek terpisah).
+4. **`/sura:execute`:** bila Superpowers ada, buat plan dengan `superpowers:writing-plans` dari TRD lalu jalankan dengan `superpowers:executing-plans` (gerbang `TEST_MODE` & advisor-strict tetap berlaku).
+5. **Bila skill Superpowers tidak tersedia:** ikuti alur diskusi → PRD/TRD → plan bertahap → implementasi sesuai `TEST_MODE` → root cause dari bukti → verifikasi dengan output terminal.
+6. **Advisor-strict menang:** `superpowers:executing-plans` / `superpowers:subagent-driven-development` tetap menunggu "lanjut" / "eksekusi" sebelum mengubah file.

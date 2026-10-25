@@ -45,6 +45,7 @@ grep -qF -- '--plugin' commands/init.md || fail "/sura:init harus memakai mode -
 grep -qF '/sura:build-prd' commands/build-trd.md || fail "/sura:build-trd harus menolak bila PRD belum ada (arahkan ke /sura:build-prd)"
 grep -qF '/sura:build-trd' commands/execute.md || fail "/sura:execute harus menolak bila TRD belum ada (arahkan ke /sura:build-trd)"
 grep -qF 'lanjut' commands/execute.md || fail "/sura:execute harus menunggu 'lanjut' sebelum mengubah file"
+grep -qF 'graphify update .' commands/init.md || fail "/sura:init harus menawarkan pembuatan index Graphify"
 pass "Command /sura:init|baca|update|build-prd|build-trd|execute lengkap, dengan gerbang PRD → TRD → eksekusi"
 
 # 4. Official validator (skipped when the claude CLI is unavailable)

@@ -15,4 +15,11 @@ Siapkan Sura di proyek yang sedang dibuka.
    bash "${CLAUDE_PLUGIN_ROOT}/install.sh" . --plugin --scope <scope> --test <test>
    ```
 
-3. Tampilkan ringkasan output installer ke developer, lalu sarankan langkah berikutnya: isi `~/.sura/profile.md` bila masih kosong, kemudian `/sura:baca` untuk mulai diskusi kebutuhan.
+3. **Graphify (peta kode):** bila perintah `graphify` tersedia, proyek berisi kode, dan belum ada folder `graphify-out/`, tawarkan membuat index. Jalankan hanya setelah developer setuju:
+
+   ```bash
+   graphify update .
+   ```
+
+   Ini ekstraksi AST tanpa LLM (cepat, gratis). `graphify-out/` sudah dilindungi dari git oleh installer. Bila `graphify` tidak ada, cukup sebutkan bahwa Graphify belum terpasang.
+4. Tampilkan ringkasan output installer ke developer, lalu sarankan langkah berikutnya: isi `~/.sura/profile.md` bila masih kosong, kemudian `/sura:baca` untuk mulai diskusi kebutuhan.
