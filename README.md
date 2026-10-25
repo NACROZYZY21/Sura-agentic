@@ -27,7 +27,7 @@ Bekerja bersama AI coding assistant (Antigravity, Gemini CLI, Claude Code, Curso
 | 🎯 **Adaptive Project Profile** | Mendukung pilihan Scope (`fullstack`, `backend`, `frontend`, `apidef`, `cli-lib`) & Mode Test (`strict-tdd`, `flexible`, `no-test`) | Aturan AI, template TRD, dan gerbang verifikasi otomatis menyesuaikan jenis proyek (pakai file test maupun tanpa test). |
 | 🗺️ **Graphify Engine** | Integrasi AST knowledge graph (`graphify-out/`) untuk analisis *Blast Radius* | AI memetakan relasi komponen dan file yang wajib/dilarang disentuh tanpa membaca puluhan file mentah. |
 | ⚡ **Superpowers Workflow** | Orkestrasi *brainstorming*, *TDD*, *systematic-debugging*, & *verification-before-completion* | Mencegah halusinasi dan memastikan setiap klaim selesai dibuktikan dengan output terminal nyata. |
-| 🛡️ **Zero Token Waste & Git Safe** | Core rules ramping (~4.7 KB di `CLAUDE.md`) + protokol detail dimuat sebagai skill hanya saat dipakai + filter `.ignore` universal + proteksi `.git/info/exclude` | Biaya awal sesi kecil, AI tidak membaca sampah token, dan **100% aman dari kebocoran ke PR/commit tim**. |
+| 🛡️ **Zero Token Waste & Git Safe** | Core rules ramping (~5.1 KB di `CLAUDE.md`) + protokol detail dimuat sebagai skill hanya saat dipakai + filter `.ignore` universal + proteksi `.git/info/exclude` | Biaya awal sesi kecil, AI tidak membaca sampah token, dan **100% aman dari kebocoran ke PR/commit tim**. |
 
 ---
 
@@ -70,6 +70,20 @@ Perintah yang dipakai: `claude plugin install superpowers@superpowers-marketplac
 ### Claude Code vs Tool Lain
 - **Claude Code:** `CLAUDE.md` hanya berisi core (SOUL + RULES) dan override Superpowers. Protokol detail (`skills/sura-prd-trd`, `skills/sura-project-profile`, `skills/sura-graphify`) dipasang ke `.claude/skills/` dan baru dimuat saat relevan — mekanisme yang sama yang membuat Superpowers murah.
 - **Gemini CLI, Cursor, Antigravity:** belum ada mekanisme skill yang sama, jadi isi skill di-inline ke payload rule beserta checklist alur kerja ringkas (tanpa menyebut skill Superpowers yang tidak tersedia di sana).
+
+### Ukuran Payload (Hasil Ukur)
+Diukur oleh `bash tests/measure.sh` dengan memasang versi sebelum refactor (`0a94e8a`) dan versi sekarang ke folder kosong. Token ≈ byte / 4 (perkiraan kasar). File `sura-memory/` masih berupa template kosong — di proyek yang sudah terisi angkanya lebih besar.
+
+<!-- MEASURE:START -->
+| Dibaca AI di awal sesi | Sebelum refactor | Sekarang |
+|---|---|---|
+| `CLAUDE.md` (selalu dimuat) | 21.3 KB | 5.1 KB |
+| File wajib saat `baca sura` | 5 file, 13.0 KB | 3 file, 6.1 KB |
+| **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **11.3 KB ≈ 2819 token** |
+| `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 13.5 KB |
+<!-- MEASURE:END -->
+
+Tabel ini dicek otomatis (`bash tests/measure.sh --check`): kalau payload berubah tapi tabel tidak diperbarui, pengecekan gagal.
 
 ---
 
@@ -119,6 +133,7 @@ Sura-agentic/
 ├── ignore/
 │   └── .ignore-template                    # Filter universal pemblokir sampah token
 └── tests/
+    ├── measure.sh                          # Ukur payload & bacaan awal sesi; --check menjaga angka di README
     ├── test-content.sh                     # Lint isi rules, skills, templates, README
     └── test-install.sh                     # Automated test suite untuk memverifikasi installer
 ```
@@ -128,7 +143,7 @@ Sura-agentic/
 ## 🧪 Menjalankan Pengujian Installer
 
 ```bash
-bash tests/test-content.sh && bash tests/test-install.sh
+bash tests/test-content.sh && bash tests/test-install.sh && bash tests/measure.sh --check
 ```
 
 ---
