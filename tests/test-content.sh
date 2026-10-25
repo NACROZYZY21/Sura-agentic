@@ -89,6 +89,15 @@ grep -qi 'persetujuan' skills/sura-prd-trd/SKILL.md || fail "promosi pelajaran u
 ! grep -n 'DEVELOPER_NAME' templates/MEMORY.template.md || fail "MEMORY.template masih memuat profil developer"
 pass "Lapis profil global ~/.sura (profil, pelajaran umum lewat persetujuan)"
 
+# 8. PRD → TRD → execute pipeline keywords for every tool
+for kw in 'build prd' 'build trd' 'eksekusi'; do
+  grep -qF "\`$kw\`" rules/core/SOUL.md || fail "SOUL tidak memuat kata kunci \`$kw\`"
+done
+grep -qF 'US-' skills/sura-prd-trd/SKILL.md && grep -qi 'setiap user story' skills/sura-prd-trd/SKILL.md || fail "TRD harus menelusuri setiap user story PRD"
+grep -qF '{{' skills/sura-prd-trd/SKILL.md || fail "gerbang 'masih template' (placeholder {{) tidak dijelaskan"
+grep -qF '| **Task** | **User Story** |' templates/TRD/TRD.template.md || fail "tabel Tasks di TRD.template belum punya kolom User Story"
+pass "Alur build prd → build trd → eksekusi ada di core & skill"
+
 # 7. No employer branding in the repo
 ! git -C "$REPO_ROOT" grep -n -i 'sawit' -- . ':!docs' ':!tests/test-content.sh' || fail "repo masih menyebut nama perusahaan (sawit...)"
 pass "Tanpa nama perusahaan"

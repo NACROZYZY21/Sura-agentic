@@ -35,14 +35,17 @@ jq -e '.hooks.SessionStart and (.hooks.PreToolUse[] | select(.matcher == "Read|G
 pass "Hook plugin menunjuk script yang ada"
 
 # 3. Slash commands /sura:init, /sura:baca, /sura:update
-for c in init baca update; do
+for c in init baca update build-prd build-trd execute; do
   f="commands/$c.md"
   [ -f "$f" ] || fail "$f tidak ada"
   awk 'NR==1 && $0=="---" {fm=1; next} fm && /^---$/ {exit} fm' "$f" | grep -qE '^description: .+' || fail "$f tanpa description"
 done
 grep -qF '${CLAUDE_PLUGIN_ROOT}/install.sh' commands/init.md || fail "/sura:init harus menjalankan installer plugin"
 grep -qF -- '--plugin' commands/init.md || fail "/sura:init harus memakai mode --plugin"
-pass "Command /sura:init, /sura:baca, /sura:update lengkap"
+grep -qF '/sura:build-prd' commands/build-trd.md || fail "/sura:build-trd harus menolak bila PRD belum ada (arahkan ke /sura:build-prd)"
+grep -qF '/sura:build-trd' commands/execute.md || fail "/sura:execute harus menolak bila TRD belum ada (arahkan ke /sura:build-trd)"
+grep -qF 'lanjut' commands/execute.md || fail "/sura:execute harus menunggu 'lanjut' sebelum mengubah file"
+pass "Command /sura:init|baca|update|build-prd|build-trd|execute lengkap, dengan gerbang PRD → TRD → eksekusi"
 
 # 4. Official validator (skipped when the claude CLI is unavailable)
 if command -v claude >/dev/null 2>&1; then

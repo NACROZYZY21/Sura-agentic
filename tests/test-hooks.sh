@@ -73,7 +73,7 @@ cat > "$TMP_BASE/proj/sura-memory/MEMORY.md" <<'EOF'
 | RAHASIA_GLOSSARY | tidak perlu disuntik |
 EOF
 OUT="$(HOME="$TMP_BASE/home" CLAUDE_PROJECT_DIR="$TMP_BASE/proj" bash "$START")"
-for want in 'Tester Profil' 'Pelajaran umum contoh' 'Fitur Ekspor' 'Jangan sentuh migrations/' 'baca sura'; do
+for want in 'Tester Profil' 'Pelajaran umum contoh' 'Fitur Ekspor' 'Jangan sentuh migrations/' 'baca sura' 'update sura'; do
   grep -qF "$want" <<<"$OUT" || fail "SessionStart tidak memuat: $want"
 done
 if grep -q 'RAHASIA_GLOSSARY' <<<"$OUT"; then fail "SessionStart menyuntik bagian yang tidak perlu"; fi

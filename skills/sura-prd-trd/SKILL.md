@@ -13,6 +13,12 @@ Setiap diskusi proyek atau fitur harus bermuara pada dokumentasi aktif di `sura-
 3. Deteksi kondisi repo (bagian 2) lalu diskusikan kebutuhan sampai matang.
 4. Setelah disetujui developer, tulis/perbarui `TRD/PRD.md` & `TRD/TRD.md` sebelum menulis kode.
 
+## 1b. Alur `build prd` → `build trd` → `eksekusi`
+Dokumen dianggap **masih template** bila masih memuat placeholder `{{...}}` atau bagian intinya kosong.
+1. **`build prd`:** bila PRD fitur lama sudah selesai, arsipkan dulu (bagian 3). Diskusi satu pertanyaan per giliran, lalu tulis PRD (struktur bagian 4) setelah disetujui. Beri nomor setiap user story: `US-01`, `US-02`, ...
+2. **`build trd`:** tolak bila PRD masih template — arahkan ke `build prd`. Petakan kode (Mode A/B, bagian 2), tulis TRD (struktur bagian 5). Setiap user story PRD wajib muncul di TRD: kolom *User Story* di tabel Tasks Breakdown menyebut `US-xx`; user story tanpa task = TRD belum selesai.
+3. **`eksekusi`:** tolak bila TRD masih template — arahkan ke `build trd`. Ambil task berikutnya yang belum `Done` (atau nomor yang diminta), sajikan Tujuan → Lokasi → Arahan → Verifikasi, tunggu "lanjut", kerjakan, verifikasi sesuai `TEST_MODE`, lalu tandai status task di TRD & `TASK_LOG.md`. Satu task per giliran.
+
 ## 2. Dua Mode Pembuatan PRD & TRD
 
 ### Mode A — Repo Sudah Ada Kode (*Existing / Brownfield*)

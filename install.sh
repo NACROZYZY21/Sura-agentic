@@ -287,6 +287,21 @@ echo "  🎯 Project Profile → Scope: [$PROJECT_SCOPE] | Test Mode: [$TEST_MOD
 MEMORY_DIR="$TARGET_FULL_PATH/sura-memory"
 mkdir -p "$MEMORY_DIR/TRD/archive" "$MEMORY_DIR/designs" "$MEMORY_DIR/reviews" "$MEMORY_DIR/lessons"
 
+# Init ulang dengan profil berbeda: perbarui baris profil di catatan yang sudah ada (isi lain tidak disentuh)
+if [ -f "$MEMORY_DIR/CONVENTIONS.md" ]; then
+  sed -i.bak -E \
+    -e 's/^(- \*\*`PROJECT_SCOPE`:\*\* )`[a-z-]+`/\1`'"$PROJECT_SCOPE"'`/' \
+    -e 's/^(- \*\*`TEST_MODE`:\*\* )`[a-z-]+`/\1`'"$TEST_MODE"'`/' \
+    -e 's/(\(Mengikuti `TEST_MODE`: )`[a-z-]+`/\1`'"$TEST_MODE"'`/' \
+    "$MEMORY_DIR/CONVENTIONS.md" && rm -f "$MEMORY_DIR/CONVENTIONS.md.bak"
+fi
+if [ -f "$MEMORY_DIR/MEMORY.md" ]; then
+  sed -i.bak -E \
+    -e 's/^(- \*\*Project Scope:\*\* )`[a-z-]+`/\1`'"$PROJECT_SCOPE"'`/' \
+    -e 's/^(- \*\*Testing Mode:\*\* )`[a-z-]+`/\1`'"$TEST_MODE"'`/' \
+    "$MEMORY_DIR/MEMORY.md" && rm -f "$MEMORY_DIR/MEMORY.md.bak"
+fi
+
 # Profil proyek tersimpan: dibaca hook mode plugin dan --upgrade
 printf 'PROJECT_SCOPE=%s\nTEST_MODE=%s\n' "$PROJECT_SCOPE" "$TEST_MODE" > "$MEMORY_DIR/.profile"
 

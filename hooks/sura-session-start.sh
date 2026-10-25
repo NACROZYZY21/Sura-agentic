@@ -48,5 +48,5 @@ section() {
     section "$MEM/MEMORY.md" "Batasan Proyek"
   fi
   echo
-  echo "> Ketik \`baca sura\` untuk memuat PRD/TRD dan konteks proyek lengkap."
+  echo "> Ketik \`baca sura\` untuk mulai kerja (PRD/TRD & konteks lengkap), \`update sura\` saat task selesai."
 } | head -c "$LIMIT"

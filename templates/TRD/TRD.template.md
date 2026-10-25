@@ -106,13 +106,13 @@ sequenceDiagram
 
 # Tasks
 
-| **Task** | **Assignee** | **Story Point** | **Status** |
-|---|---|---|---|
-| **[APIDEF]** Define `{{API_1_METHOD}} {{API_1_PATH}}` (`{{API_1_OPERATION_ID}}`) | @{{DEVELOPER_NAME}} | {{SP_APIDEF}} | [ ] |
-| **[BE]** Implement Handler, Service, & Repository for `{{API_1_OPERATION_ID}}` | @{{DEVELOPER_NAME}} | {{SP_BE}} | [ ] |
-| **[FE]** Build UI Components & Integrate `{{API_1_METHOD}} {{API_1_PATH}}` | @{{DEVELOPER_NAME}} | {{SP_FE}} | [ ] |
-| **[VERIFY]** Run `/verify` gate (Test/Lint/Build) & Open PR | @{{DEVELOPER_NAME}} | {{SP_VERIFY}} | [ ] |
-| | **SUM** | **{{SP_TOTAL}}** | |
+| **Task** | **User Story** | **Assignee** | **Story Point** | **Status** |
+|---|---|---|---|---|
+| **[APIDEF]** Define `{{API_1_METHOD}} {{API_1_PATH}}` (`{{API_1_OPERATION_ID}}`) | US-01 | @{{DEVELOPER_NAME}} | {{SP_APIDEF}} | [ ] |
+| **[BE]** Implement Handler, Service, & Repository for `{{API_1_OPERATION_ID}}` | US-01 | @{{DEVELOPER_NAME}} | {{SP_BE}} | [ ] |
+| **[FE]** Build UI Components & Integrate `{{API_1_METHOD}} {{API_1_PATH}}` | US-01 | @{{DEVELOPER_NAME}} | {{SP_FE}} | [ ] |
+| **[VERIFY]** Run `/verify` gate (Test/Lint/Build) & Open PR | Semua | @{{DEVELOPER_NAME}} | {{SP_VERIFY}} | [ ] |
+| | | **SUM** | **{{SP_TOTAL}}** | |
 
 # Note / Reference
 

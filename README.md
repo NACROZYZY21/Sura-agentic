@@ -27,7 +27,7 @@ Bekerja bersama AI coding assistant (Antigravity, Gemini CLI, Claude Code, Curso
 | 🎯 **Adaptive Project Profile** | Mendukung pilihan Scope (`fullstack`, `backend`, `frontend`, `apidef`, `cli-lib`) & Mode Test (`strict-tdd`, `flexible`, `no-test`) | Aturan AI, template TRD, dan gerbang verifikasi otomatis menyesuaikan jenis proyek (pakai file test maupun tanpa test). |
 | 🗺️ **Graphify Engine** | Integrasi AST knowledge graph (`graphify-out/`) untuk analisis *Blast Radius* | AI memetakan relasi komponen dan file yang wajib/dilarang disentuh tanpa membaca puluhan file mentah. |
 | ⚡ **Superpowers Workflow** | Orkestrasi *brainstorming*, *TDD*, *systematic-debugging*, & *verification-before-completion* | Mencegah halusinasi dan memastikan setiap klaim selesai dibuktikan dengan output terminal nyata. |
-| 🛡️ **Zero Token Waste & Git Safe** | Core rules ramping (~5.2 KB di `CLAUDE.md`) + protokol detail dimuat sebagai skill hanya saat dipakai + filter `.ignore` universal + proteksi `.git/info/exclude` | Biaya awal sesi kecil, AI tidak membaca sampah token, dan **100% aman dari kebocoran ke PR/commit tim**. |
+| 🛡️ **Zero Token Waste & Git Safe** | Core rules ramping (~5.8 KB di `CLAUDE.md`) + protokol detail dimuat sebagai skill hanya saat dipakai + filter `.ignore` universal + proteksi `.git/info/exclude` | Biaya awal sesi kecil, AI tidak membaca sampah token, dan **100% aman dari kebocoran ke PR/commit tim**. |
 
 ---
 
@@ -56,6 +56,9 @@ Lalu di tiap proyek, cukup ketik di Claude Code:
 | `/sura:init [scope] [test-mode]` | Siapkan `sura-memory/`, `~/.sura/`, dan `.ignore` — **tanpa** `CLAUDE.md`, `.claude/`, atau file rules lain di repo (aman untuk repo tim) |
 | `/sura:baca [topik]` | Sama dengan `baca sura` |
 | `/sura:update [catatan]` | Sama dengan `update sura` |
+| `/sura:build-prd [fitur]` | Diskusi kebutuhan → tulis `TRD/PRD.md` (apa & kenapa), user story bernomor `US-01`… |
+| `/sura:build-trd` | Dari PRD yang sudah terisi → tulis `TRD/TRD.md` (bagaimana); setiap `US-xx` wajib punya task. Ditolak bila PRD masih template |
+| `/sura:execute [task]` | Kerjakan task TRD satu per satu: Tujuan → Lokasi → Arahan → Verifikasi, tunggu "lanjut", tutup dengan bukti. Ditolak bila TRD masih template |
 
 Update: `claude plugin update sura@sura-agentic`. Cabut: `claude plugin uninstall sura@sura-agentic` (lalu `install.sh --uninstall` untuk membersihkan `.ignore`/exclude di proyek).
 
@@ -135,12 +138,12 @@ Diukur oleh `bash tests/measure.sh` dengan memasang versi sebelum refactor (`0a9
 <!-- MEASURE:START -->
 | Dibaca AI di awal sesi | Sebelum refactor | Sekarang |
 |---|---|---|
-| `CLAUDE.md` (selalu dimuat) | 21.3 KB | 5.2 KB |
+| `CLAUDE.md` (selalu dimuat) | 21.3 KB | 5.8 KB |
 | Hook `SessionStart` (otomatis) | — | 2.2 KB |
 | File wajib saat `baca sura` | 5 file, 13.0 KB | 5 file (2 global + 3 proyek), 7.2 KB |
-| **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **14.6 KB ≈ 3652 token** |
-| Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 7.2 KB |
-| `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 13.9 KB |
+| **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **15.2 KB ≈ 3812 token** |
+| Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 7.9 KB |
+| `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 15.3 KB |
 <!-- MEASURE:END -->
 
 Tabel ini dicek otomatis (`bash tests/measure.sh --check`): kalau payload berubah tapi tabel tidak diperbarui, pengecekan gagal.
@@ -153,6 +156,7 @@ Tabel ini dicek otomatis (`bash tests/measure.sh --check`): kalau payload beruba
 |---|---|
 | **`"baca sura"`** | Membaca `sura-memory/`, memeriksa profil proyek, menyalakan **Graphify** & **Superpowers Brainstorming**, berdiskusi mematangkan kebutuhan, lalu **otomatis membuat `PRD` & `TRD`** di `sura-memory/TRD/` sebelum mulai ngoding. |
 | **`"update sura"`** *(atau `/retro`)* | Menyinkronkan hasil akhir ke `PRD` & `TRD`, menandai task `Done` di `TASK_LOG.md`, mengarsipkan task lama ke `TASK_LOG.archive.md`, mencatat post-mortem di `lessons/`, dan menggeser antrean task di `MEMORY.md`. |
+| **`"build prd"`** → **`"build trd"`** → **`"eksekusi"`** | Alur PRD → TRD → implementasi bertahap (versi teks dari `/sura:build-prd`, `/sura:build-trd`, `/sura:execute`; berlaku juga di Gemini, Cursor, Antigravity, Replit). |
 | **`/design`** | Menyusun dokumen teknis 10-section mengacu pada `sura-memory/DESIGN_BEFORE_CODE.md` (disimpan ke `sura-memory/designs/`). |
 | **`/verify`** | Menjalankan gerbang pemeriksaan Pre-PR (linter, formatting, cek dependency, dan test/build sesuai `TEST_MODE`) dengan vonis tegas: **READY TO PR** atau **NOT READY**. |
 | **`/review-pr <nomor>`** | Melakukan review PR mendalam secara *read-only* mengacu pada `PR_REVIEW_PLAYBOOK.md` dan menyimpan laporannya di `sura-memory/reviews/`. |

@@ -204,6 +204,19 @@ OUT="$(bash "$INSTALLER" "$TEST_DIR_3" --non-interactive --no-deps)"
 [ "$(cat "$TEST_DIR_3/.claude/settings.local.json")" = '{"permissions":{}}' ] || { echo "  ❌ [FAIL] settings.local.json yang di-track tim diubah"; exit 1; }
 grep -q 'settings.local.json' <<<"$OUT" || { echo "  ❌ [FAIL] tidak ada peringatan hook dilewati"; exit 1; }
 echo "  ✅ [PASS] Hook Claude Code: terdaftar sekali, settings tim dipertahankan, file yang di-track tidak disentuh"
+# Re-init with a different profile updates the profile lines in existing notes (nothing else)
+TEST_DIR_PR="$TMP_BASE/proj-reprofile"
+mkdir -p "$TEST_DIR_PR"; git -C "$TEST_DIR_PR" init -q
+bash "$INSTALLER" "$TEST_DIR_PR" --plugin --scope fullstack --test no-test --no-deps >/dev/null < /dev/null
+echo "catatan pribadi" >> "$TEST_DIR_PR/sura-memory/CONVENTIONS.md"
+bash "$INSTALLER" "$TEST_DIR_PR" --plugin --scope frontend --test flexible --no-deps >/dev/null < /dev/null
+C="$TEST_DIR_PR/sura-memory/CONVENTIONS.md"; M="$TEST_DIR_PR/sura-memory/MEMORY.md"
+grep -qF '**`PROJECT_SCOPE`:** `frontend`' "$C" && grep -qF '**`TEST_MODE`:** `flexible`' "$C" || { echo "  ❌ [FAIL] CONVENTIONS.md tidak ikut profil baru"; exit 1; }
+grep -qF '**Project Scope:** `frontend`' "$M" && grep -qF '**Testing Mode:** `flexible`' "$M" || { echo "  ❌ [FAIL] MEMORY.md tidak ikut profil baru"; exit 1; }
+if grep -qF '**`PROJECT_SCOPE`:** `fullstack`' "$C" || grep -qF '**Project Scope:** `fullstack`' "$M"; then echo "  ❌ [FAIL] profil lama tersisa"; exit 1; fi
+grep -qxF "catatan pribadi" "$C" || { echo "  ❌ [FAIL] init ulang menghapus catatan"; exit 1; }
+echo "  ✅ [PASS] Init ulang dengan profil berbeda memperbarui baris profil di CONVENTIONS.md & MEMORY.md saja"
+
 # Plugin mode: project gets only sura-memory/, .ignore, ~/.sura — rules come from the Claude Code plugin
 TEST_DIR_P="$TMP_BASE/proj-plugin"
 mkdir -p "$TEST_DIR_P"; git -C "$TEST_DIR_P" init -q
