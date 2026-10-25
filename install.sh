@@ -13,6 +13,9 @@ PROJECT_SCOPE=""
 TEST_MODE=""
 NON_INTERACTIVE=false
 DEPS_MODE="ask"
+UNINSTALL=false
+PURGE=false
+UPGRADE=false
 
 usage() {
   cat <<EOF
@@ -24,6 +27,9 @@ Options:
   --non-interactive     Use auto-detected/default profile without prompting
   --with-deps           Install missing Superpowers & Graphify without asking
   --no-deps             Skip the Superpowers & Graphify check entirely
+  --upgrade             Refresh rules/skills/hooks with the saved profile; template changes become diffs in sura-memory/.upgrade/
+  --uninstall           Remove everything Sura installed (keeps sura-memory/ and ~/.sura)
+  --purge               With --uninstall: also delete sura-memory/
   -h, --help            Show this help message
 EOF
 }
@@ -50,6 +56,19 @@ while [[ $# -gt 0 ]]; do
       DEPS_MODE="no"
       shift
       ;;
+    --uninstall)
+      UNINSTALL=true
+      shift
+      ;;
+    --purge)
+      PURGE=true
+      shift
+      ;;
+    --upgrade)
+      UPGRADE=true
+      NON_INTERACTIVE=true
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -69,6 +88,86 @@ done
 mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR"
 TARGET_FULL_PATH="$(pwd)"
+
+MARKER="SURA-AGENTIC-AUTO-GENERATED"
+
+# Isi ignore file persis seperti saat dibuat installer — dipakai juga oleh uninstall
+# untuk mengenali file yang belum dikustomisasi.
+ignore_content() {
+  cat "$SCRIPT_DIR/ignore/.ignore-template"
+  # Arsip hanya disembunyikan dari pencarian (ripgrep); .cursorignore/.geminiignore
+  # akan memblokir akses total, padahal arsip harus tetap bisa dibuka saat diminta.
+  if [ "$1" = ".ignore" ]; then
+    printf "\n# Sura (dibaca hanya saat diminta)\nsura-memory/TRD/archive/\nsura-memory/.templates/\n"
+  fi
+}
+
+# ------------------------------------------------------------------------------
+# Uninstall: cabut hanya file buatan Sura. sura-memory/ (catatan developer) dan
+# ~/.sura (profil global) tetap ada, kecuali --purge untuk sura-memory/.
+# ------------------------------------------------------------------------------
+do_uninstall() {
+  local f name exclude="$TARGET_FULL_PATH/.git/info/exclude"
+  echo "🧹 Uninstalling Sura-agentic from: $TARGET_FULL_PATH"
+  for f in CLAUDE.md CLAUDE.local.md GEMINI.md GEMINI.local.md \
+           .agents/rules/agentic-sop.md .agents/rules/sura-agentic-sop.md \
+           .cursor/rules/agentic-sop.mdc .cursor/rules/sura-agentic-sop.mdc; do
+    if [ -f "$TARGET_FULL_PATH/$f" ] && grep -q "$MARKER" "$TARGET_FULL_PATH/$f"; then
+      rm -f "$TARGET_FULL_PATH/$f"
+      echo "  🗑️  $f"
+    fi
+  done
+  for f in "$TARGET_FULL_PATH"/.claude/skills/sura-*/ "$TARGET_FULL_PATH"/.claude/hooks/sura-*.sh; do
+    [ -e "$f" ] || continue
+    rm -rf "$f"
+    echo "  🗑️  ${f#"$TARGET_FULL_PATH"/}"
+  done
+  if [ -f "$TARGET_FULL_PATH/.claude/settings.local.json" ] && command -v python3 >/dev/null 2>&1; then
+    python3 "$SCRIPT_DIR/hooks/merge-settings.py" remove "$TARGET_FULL_PATH/.claude/settings.local.json"
+    echo "  🧽 Hook Sura dicabut dari .claude/settings.local.json"
+  fi
+  for name in .ignore .cursorignore .geminiignore; do
+    [ -f "$TARGET_FULL_PATH/$name" ] || continue
+    if cmp -s <(ignore_content "$name") "$TARGET_FULL_PATH/$name"; then
+      rm -f "$TARGET_FULL_PATH/$name"
+      echo "  🗑️  $name"
+    else
+      echo "  ⏭️  $name sudah dikustomisasi → dibiarkan"
+    fi
+  done
+  for f in .claude/skills .claude/hooks .claude .cursor/rules .cursor .agents/rules .agents; do
+    rmdir "$TARGET_FULL_PATH/$f" 2>/dev/null || true
+  done
+  if [ "$PURGE" = true ]; then
+    rm -rf "$TARGET_FULL_PATH/sura-memory"
+    echo "  🗑️  sura-memory/ (--purge)"
+  fi
+  if [ -f "$exclude" ]; then
+    local keep='^$'
+    [ "$PURGE" = true ] || keep='^sura-memory/$'
+    grep -vxE '\.ignore|\.cursorignore|\.geminiignore|(CLAUDE|GEMINI)(\.local)?\.md|\.claude/settings\.local\.json|sura-memory/|\.claude/skills/sura-[^/]+/|\.claude/hooks/sura-[^/]+|\.(agents|cursor)/rules/((sura-)?agentic-sop\.mdc?)?' "$exclude" > "$exclude.tmp" || true
+    grep -xE "$keep" "$exclude" >> "$exclude.tmp" || true
+    mv "$exclude.tmp" "$exclude"
+  fi
+  echo ""
+  echo "✅ Sura-agentic dicabut. Catatan di sura-memory/ dan profil ~/.sura tidak disentuh$( [ "$PURGE" = true ] && echo " (sura-memory/ dihapus karena --purge)")."
+}
+
+if [ "$UNINSTALL" = true ]; then
+  do_uninstall
+  exit 0
+fi
+
+# Upgrade memakai profil proyek yang tersimpan di payload sebelumnya
+if [ "$UPGRADE" = true ]; then
+  for f in CLAUDE.md CLAUDE.local.md GEMINI.md GEMINI.local.md; do
+    if [ -f "$f" ] && grep -q "$MARKER" "$f"; then
+      [ -n "$PROJECT_SCOPE" ] || PROJECT_SCOPE="$(grep -oE 'PROJECT_SCOPE=[a-z-]+' "$f" | head -1 | cut -d= -f2)"
+      [ -n "$TEST_MODE" ] || TEST_MODE="$(grep -oE 'TEST_MODE=[a-z-]+' "$f" | head -1 | cut -d= -f2)"
+      break
+    fi
+  done
+fi
 
 echo "🚀 Installing Sura-agentic into: $TARGET_FULL_PATH"
 
@@ -180,9 +279,45 @@ for tmpl in "${!TEMPLATE_MAP[@]}"; do
   out_path="$MEMORY_DIR/$out_rel"
   if [ ! -f "$out_path" ]; then
     render_template "$SCRIPT_DIR/templates/$tmpl" "$out_path"
+    # Baseline = template mentah asal file ini; --upgrade membandingkannya dengan template baru
+    mkdir -p "$(dirname "$MEMORY_DIR/.templates/$out_rel")"
+    cp "$SCRIPT_DIR/templates/$tmpl" "$MEMORY_DIR/.templates/$out_rel"
     echo "  ✅ Created: sura-memory/$out_rel"
   fi
 done
+
+# --upgrade: catatan developer tidak pernah ditimpa — perubahan template jadi diff untuk diterapkan manual
+if [ "$UPGRADE" = true ]; then
+  UPGRADED=()
+  for tmpl in "${!TEMPLATE_MAP[@]}"; do
+    out_rel="${TEMPLATE_MAP[$tmpl]}"
+    base="$MEMORY_DIR/.templates/$out_rel"
+    diff_out="$MEMORY_DIR/.upgrade/$out_rel.diff"
+    mkdir -p "$(dirname "$diff_out")" "$(dirname "$base")"
+    if [ -f "$base" ]; then
+      cmp -s "$base" "$SCRIPT_DIR/templates/$tmpl" && continue
+      diff -u --label "template lama" --label "template baru" "$base" "$SCRIPT_DIR/templates/$tmpl" > "$diff_out" || true
+    else
+      render_template "$SCRIPT_DIR/templates/$tmpl" "$diff_out.rendered"
+      if cmp -s "$diff_out.rendered" "$MEMORY_DIR/$out_rel"; then
+        rm -f "$diff_out.rendered"
+        cp "$SCRIPT_DIR/templates/$tmpl" "$base"
+        continue
+      fi
+      diff -u --label "sura-memory/$out_rel (sekarang)" --label "template terbaru" "$MEMORY_DIR/$out_rel" "$diff_out.rendered" > "$diff_out" || true
+      rm -f "$diff_out.rendered"
+    fi
+    cp "$SCRIPT_DIR/templates/$tmpl" "$base"
+    UPGRADED+=("$out_rel")
+  done
+  rmdir "$MEMORY_DIR/.upgrade/TRD" "$MEMORY_DIR/.upgrade" 2>/dev/null || true
+  if [ ${#UPGRADED[@]} -gt 0 ]; then
+    echo "  📝 Template berubah (catatan kamu tidak disentuh) — terapkan manual dari sura-memory/.upgrade/:"
+    printf '       %s.diff\n' "${UPGRADED[@]}"
+  else
+    echo "  ✅ Semua template sura-memory/ sudah versi terbaru"
+  fi
+fi
 
 # Profil developer global — dibuat sekali, tidak pernah ditimpa (berlaku lintas proyek)
 SURA_HOME="$HOME/.sura"
@@ -207,12 +342,7 @@ for ignore_file in ".ignore" ".cursorignore" ".geminiignore"; do
   if [ -f "$TARGET_FULL_PATH/$ignore_file" ]; then
     echo "  ⏭️  $ignore_file sudah ada → dilewati (kustomisasi kamu aman)"
   else
-    cp "$SCRIPT_DIR/ignore/.ignore-template" "$TARGET_FULL_PATH/$ignore_file"
-    # Arsip hanya disembunyikan dari pencarian (ripgrep); .cursorignore/.geminiignore
-    # akan memblokir akses total, padahal arsip harus tetap bisa dibuka saat diminta.
-    if [ "$ignore_file" = ".ignore" ]; then
-      printf "\n# Sura archive (dibaca hanya saat diminta)\nsura-memory/TRD/archive/\n" >> "$TARGET_FULL_PATH/$ignore_file"
-    fi
+    ignore_content "$ignore_file" > "$TARGET_FULL_PATH/$ignore_file"
     echo "  ✅ Created: $ignore_file"
   fi
 done

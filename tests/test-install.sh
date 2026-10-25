@@ -197,6 +197,62 @@ OUT="$(bash "$INSTALLER" "$TEST_DIR_3" --non-interactive --no-deps)"
 [ "$(cat "$TEST_DIR_3/.claude/settings.local.json")" = '{"permissions":{}}' ] || { echo "  ❌ [FAIL] settings.local.json yang di-track tim diubah"; exit 1; }
 grep -q 'settings.local.json' <<<"$OUT" || { echo "  ❌ [FAIL] tidak ada peringatan hook dilewati"; exit 1; }
 echo "  ✅ [PASS] Hook Claude Code: terdaftar sekali, settings tim dipertahankan, file yang di-track tidak disentuh"
+# Uninstall: remove only Sura's files; keep team files, notes (sura-memory/) and ~/.sura
+TEST_DIR_U="$TMP_BASE/proj-uninstall"
+mkdir -p "$TEST_DIR_U/.cursor/rules" "$TEST_DIR_U/.claude/skills/team-skill"
+git -C "$TEST_DIR_U" init -q
+echo "# Team Claude" > "$TEST_DIR_U/CLAUDE.md"
+echo "team rule" > "$TEST_DIR_U/.cursor/rules/team.mdc"
+echo "team" > "$TEST_DIR_U/.claude/skills/team-skill/SKILL.md"
+echo '{"permissions":{"allow":["Bash(ls:*)"]}}' > "$TEST_DIR_U/.claude/settings.local.json"
+echo "custom_only/" > "$TEST_DIR_U/.geminiignore"
+bash "$INSTALLER" "$TEST_DIR_U" --non-interactive --no-deps >/dev/null
+echo "catatan saya" >> "$TEST_DIR_U/sura-memory/MEMORY.md"
+OUT="$(bash "$INSTALLER" "$TEST_DIR_U" --uninstall < /dev/null)"
+if grep -q 'Pilih Scope' <<<"$OUT"; then echo "  ❌ [FAIL] uninstall menampilkan prompt profil"; exit 1; fi
+for gone in CLAUDE.local.md GEMINI.md .cursor/rules/agentic-sop.mdc .agents/rules/agentic-sop.md \
+            .claude/skills/sura-prd-trd .claude/hooks/sura-session-start.sh .ignore .cursorignore; do
+  [ ! -e "$TEST_DIR_U/$gone" ] || { echo "  ❌ [FAIL] uninstall tidak menghapus $gone"; exit 1; }
+done
+grep -qxF "# Team Claude" "$TEST_DIR_U/CLAUDE.md" || { echo "  ❌ [FAIL] uninstall menyentuh CLAUDE.md tim"; exit 1; }
+grep -qxF "team rule" "$TEST_DIR_U/.cursor/rules/team.mdc" || { echo "  ❌ [FAIL] uninstall menghapus rule tim"; exit 1; }
+[ -f "$TEST_DIR_U/.claude/skills/team-skill/SKILL.md" ] || { echo "  ❌ [FAIL] uninstall menghapus skill tim"; exit 1; }
+grep -qxF "custom_only/" "$TEST_DIR_U/.geminiignore" || { echo "  ❌ [FAIL] uninstall menghapus ignore yang dikustomisasi"; exit 1; }
+jq -e '(.hooks == null) and (.permissions.allow == ["Bash(ls:*)"])' "$TEST_DIR_U/.claude/settings.local.json" >/dev/null \
+  || { echo "  ❌ [FAIL] settings.local.json tidak dibersihkan dengan benar"; exit 1; }
+grep -qxF "catatan saya" "$TEST_DIR_U/sura-memory/MEMORY.md" || { echo "  ❌ [FAIL] uninstall menghapus sura-memory/"; exit 1; }
+[ -f "$HOME/.sura/profile.md" ] || { echo "  ❌ [FAIL] uninstall menghapus ~/.sura"; exit 1; }
+[ "$(grep -cvxF 'sura-memory/' "$TEST_DIR_U/.git/info/exclude" | tr -d ' ')" = "$(grep -c '^#' "$TEST_DIR_U/.git/info/exclude" | tr -d ' ')" ] \
+  || { echo "  ❌ [FAIL] entri exclude Sura tersisa:"; grep -v '^#' "$TEST_DIR_U/.git/info/exclude"; exit 1; }
+if git -C "$TEST_DIR_U" status --porcelain -uall | grep -q 'sura-memory'; then echo "  ❌ [FAIL] sura-memory/ bocor ke git setelah uninstall"; exit 1; fi
+bash "$INSTALLER" "$TEST_DIR_U" --uninstall --purge >/dev/null < /dev/null
+[ ! -e "$TEST_DIR_U/sura-memory" ] || { echo "  ❌ [FAIL] --purge tidak menghapus sura-memory/"; exit 1; }
+if grep -qxF 'sura-memory/' "$TEST_DIR_U/.git/info/exclude"; then echo "  ❌ [FAIL] --purge menyisakan exclude sura-memory/"; exit 1; fi
+echo "  ✅ [PASS] Uninstall: hanya file Sura dicabut; file tim, sura-memory/, ~/.sura aman; --purge hapus catatan"
+
+# Upgrade: refresh payload with the saved profile, surface template changes as diffs, never overwrite notes
+SURA_COPY="$TMP_BASE/sura-copy"
+mkdir -p "$SURA_COPY"
+cp -R "$REPO_ROOT/install.sh" "$REPO_ROOT/rules" "$REPO_ROOT/skills" "$REPO_ROOT/templates" "$REPO_ROOT/ignore" "$REPO_ROOT/hooks" "$SURA_COPY/"
+TEST_DIR_G="$TMP_BASE/proj-upgrade"
+mkdir -p "$TEST_DIR_G"; git -C "$TEST_DIR_G" init -q
+bash "$SURA_COPY/install.sh" "$TEST_DIR_G" --scope backend --test no-test --no-deps >/dev/null
+echo "isi saya" >> "$TEST_DIR_G/sura-memory/TASK_LOG.md"
+echo "BARIS-TEMPLATE-BARU" >> "$SURA_COPY/templates/TASK_LOG.template.md"
+OUT="$(bash "$SURA_COPY/install.sh" "$TEST_DIR_G" --upgrade --no-deps < /dev/null)"
+grep -q 'PROJECT_SCOPE=backend' "$TEST_DIR_G/CLAUDE.md" && grep -q 'TEST_MODE=no-test' "$TEST_DIR_G/CLAUDE.md" \
+  || { echo "  ❌ [FAIL] upgrade tidak memakai profil proyek yang tersimpan"; exit 1; }
+grep -qxF "isi saya" "$TEST_DIR_G/sura-memory/TASK_LOG.md" || { echo "  ❌ [FAIL] upgrade menimpa catatan"; exit 1; }
+if grep -q 'BARIS-TEMPLATE-BARU' "$TEST_DIR_G/sura-memory/TASK_LOG.md"; then echo "  ❌ [FAIL] upgrade menulis langsung ke catatan"; exit 1; fi
+grep -qxF '+BARIS-TEMPLATE-BARU' "$TEST_DIR_G/sura-memory/.upgrade/TASK_LOG.md.diff" || { echo "  ❌ [FAIL] diff template tidak dibuat"; exit 1; }
+[ ! -e "$TEST_DIR_G/sura-memory/.upgrade/MEMORY.md.diff" ] || { echo "  ❌ [FAIL] diff dibuat untuk template yang tidak berubah"; exit 1; }
+grep -q 'TASK_LOG.md' <<<"$OUT" || { echo "  ❌ [FAIL] upgrade tidak melaporkan template yang berubah"; exit 1; }
+rm -rf "$TEST_DIR_G/sura-memory/.templates" "$TEST_DIR_G/sura-memory/.upgrade"
+bash "$SURA_COPY/install.sh" "$TEST_DIR_G" --upgrade --no-deps >/dev/null < /dev/null
+[ -f "$TEST_DIR_G/sura-memory/.upgrade/TASK_LOG.md.diff" ] || { echo "  ❌ [FAIL] upgrade instalasi lama (tanpa baseline) tidak membuat diff"; exit 1; }
+[ -f "$TEST_DIR_G/sura-memory/.templates/MEMORY.md" ] || { echo "  ❌ [FAIL] baseline template tidak dibuat"; exit 1; }
+echo "  ✅ [PASS] Upgrade: profil tersimpan dipakai, perubahan template jadi diff, catatan tidak ditimpa"
+
 # 4. Superpowers skill names referenced in rules must exist (catches upstream renames)
 SP_DIR="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$REAL_HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1 || true)}"
 if [ -z "$SP_DIR" ] || [ ! -d "$SP_DIR" ]; then
