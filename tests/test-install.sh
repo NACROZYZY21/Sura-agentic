@@ -99,6 +99,16 @@ if grep -q '^name: sura-' "$TEST_DIR_1/GEMINI.md"; then echo "  ❌ [FAIL] front
 [ "$(head -1 "$TEST_DIR_1/.cursor/rules/agentic-sop.mdc")" = "---" ]
 grep -q 'alwaysApply: true' "$TEST_DIR_1/.cursor/rules/agentic-sop.mdc"
 
+# Verify Claude Code hooks installed and registered in settings.local.json
+for h in sura-session-start.sh sura-block-noise.sh; do
+  cmp -s "$REPO_ROOT/hooks/$h" "$TEST_DIR_1/.claude/hooks/$h" || { echo "  ❌ [FAIL] .claude/hooks/$h tidak terpasang"; exit 1; }
+done
+SETTINGS_1="$TEST_DIR_1/.claude/settings.local.json"
+jq -e '[.hooks.SessionStart[].hooks[].command | select(test("sura-session-start"))] | length == 1' "$SETTINGS_1" >/dev/null \
+  || { echo "  ❌ [FAIL] hook SessionStart tidak terdaftar"; exit 1; }
+jq -e '[.hooks.PreToolUse[] | select(.matcher == "Read|Grep|Glob") | .hooks[].command | select(test("sura-block-noise"))] | length == 1' "$SETTINGS_1" >/dev/null \
+  || { echo "  ❌ [FAIL] hook PreToolUse tidak terdaftar"; exit 1; }
+
 # Verify archive dir & ignore entry
 [ -d "$TEST_DIR_1/sura-memory/TRD/archive" ]
 grep -qxF 'sura-memory/TRD/archive/' "$TEST_DIR_1/.ignore"
@@ -134,6 +144,8 @@ done
 [ "$(grep -cxF 'sura-memory/' "$TEST_DIR_1/.git/info/exclude")" -eq 1 ] || { echo "  ❌ [FAIL] exclude dobel"; exit 1; }
 grep -qxF "custom profile" "$HOME/.sura/profile.md" || { echo "  ❌ [FAIL] ~/.sura/profile.md tertimpa saat re-run"; exit 1; }
 grep -qxF "custom lesson" "$HOME/.sura/lessons.md" || { echo "  ❌ [FAIL] ~/.sura/lessons.md tertimpa saat re-run"; exit 1; }
+jq -e '[.hooks.SessionStart[].hooks[].command | select(test("sura-"))] | length == 1' "$TEST_DIR_1/.claude/settings.local.json" >/dev/null \
+  || { echo "  ❌ [FAIL] hook terdaftar dobel setelah re-run"; exit 1; }
 echo "  ✅ [PASS] Re-run upgrade dari payload lama: CLAUDE.md ramping, exclude tidak dobel"
 
 # 3. Test Case 2: Team CLAUDE.md / GEMINI.md & Custom .ignore Preservation
@@ -147,6 +159,7 @@ mkdir -p "$TEST_DIR_2/.claude/skills/team-skill" "$TEST_DIR_2/.cursor/rules" "$T
 echo "team cursor rule" > "$TEST_DIR_2/.cursor/rules/team.mdc"
 echo "team sop" > "$TEST_DIR_2/.cursor/rules/agentic-sop.mdc"
 echo "team agy sop" > "$TEST_DIR_2/.agents/rules/agentic-sop.md"
+echo '{"permissions":{"allow":["Bash(ls:*)"]},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"team-guard.sh"}]}]}}' > "$TEST_DIR_2/.claude/settings.local.json"
 echo "team" > "$TEST_DIR_2/.claude/skills/team-skill/SKILL.md"
 
 bash "$INSTALLER" "$TEST_DIR_2" --non-interactive --no-deps >/dev/null
@@ -155,6 +168,9 @@ grep -qxF "team" "$TEST_DIR_2/.claude/skills/team-skill/SKILL.md"
 [ -f "$TEST_DIR_2/.claude/skills/sura-prd-trd/SKILL.md" ]
 if grep -q 'team-skill' "$TEST_DIR_2/.git/info/exclude"; then echo "  ❌ [FAIL] skill tim ikut di-exclude"; exit 1; fi
 [ "$(wc -c < "$TEST_DIR_2/CLAUDE.local.md")" -le 6144 ]
+jq -e '.permissions.allow == ["Bash(ls:*)"]' "$TEST_DIR_2/.claude/settings.local.json" >/dev/null || { echo "  ❌ [FAIL] permissions tim di settings.local.json hilang"; exit 1; }
+jq -e '[.hooks.PreToolUse[].hooks[].command] | index("team-guard.sh") != null' "$TEST_DIR_2/.claude/settings.local.json" >/dev/null || { echo "  ❌ [FAIL] hook tim di settings.local.json hilang"; exit 1; }
+jq -e '[.hooks.SessionStart[].hooks[].command | select(test("sura-session-start"))] | length == 1' "$TEST_DIR_2/.claude/settings.local.json" >/dev/null || { echo "  ❌ [FAIL] hook Sura tidak ditambahkan ke settings tim"; exit 1; }
 grep -qxF "team sop" "$TEST_DIR_2/.cursor/rules/agentic-sop.mdc" || { echo "  ❌ [FAIL] agentic-sop.mdc milik tim tertimpa"; exit 1; }
 grep -qxF "team agy sop" "$TEST_DIR_2/.agents/rules/agentic-sop.md" || { echo "  ❌ [FAIL] agentic-sop.md milik tim tertimpa"; exit 1; }
 grep -q 'SURA-AGENTIC-AUTO-GENERATED' "$TEST_DIR_2/.cursor/rules/sura-agentic-sop.mdc"
@@ -169,6 +185,18 @@ grep -qxF "custom_ignore_dir/" "$TEST_DIR_2/.ignore"
 [ -f "$TEST_DIR_2/GEMINI.local.md" ]
 
 echo "  ✅ [PASS] Team CLAUDE.md, GEMINI.md, and custom .ignore preserved safely"
+
+# Tracked settings.local.json belongs to the team: never modified
+TEST_DIR_3="$TMP_BASE/proj-tracked-settings"
+mkdir -p "$TEST_DIR_3/.claude"
+git -C "$TEST_DIR_3" init -q
+echo '{"permissions":{}}' > "$TEST_DIR_3/.claude/settings.local.json"
+git -C "$TEST_DIR_3" add .claude/settings.local.json
+git -C "$TEST_DIR_3" -c user.email=t@t -c user.name=t commit -qm init
+OUT="$(bash "$INSTALLER" "$TEST_DIR_3" --non-interactive --no-deps)"
+[ "$(cat "$TEST_DIR_3/.claude/settings.local.json")" = '{"permissions":{}}' ] || { echo "  ❌ [FAIL] settings.local.json yang di-track tim diubah"; exit 1; }
+grep -q 'settings.local.json' <<<"$OUT" || { echo "  ❌ [FAIL] tidak ada peringatan hook dilewati"; exit 1; }
+echo "  ✅ [PASS] Hook Claude Code: terdaftar sekali, settings tim dipertahankan, file yang di-track tidak disentuh"
 # 4. Superpowers skill names referenced in rules must exist (catches upstream renames)
 SP_DIR="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$REAL_HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1 || true)}"
 if [ -z "$SP_DIR" ] || [ ! -d "$SP_DIR" ]; then

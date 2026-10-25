@@ -274,6 +274,28 @@ else
 fi
 build_inline_payload > "$TARGET_FULL_PATH/$GEMINI_FILE"
 
+# Hook Claude Code: SessionStart (suntik profil + ringkasan proyek) & PreToolUse (blokir sampah token).
+# Didaftarkan di .claude/settings.local.json (pribadi), tidak pernah di settings.json milik tim.
+HOOK_EXCLUDES=()
+install_claude_hooks() {
+  local settings="$TARGET_FULL_PATH/.claude/settings.local.json" h
+  if [ -d "$TARGET_FULL_PATH/.git" ] && git -C "$TARGET_FULL_PATH" ls-files --error-unmatch .claude/settings.local.json >/dev/null 2>&1; then
+    echo "  ⚠️  .claude/settings.local.json di-track git oleh tim → hook Sura dilewati"
+    return 0
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "  ⚠️  python3 tidak ditemukan → hook Sura (settings.local.json) dilewati"
+    return 0
+  fi
+  [ -f "$settings" ] || HOOK_EXCLUDES+=(".claude/settings.local.json")
+  mkdir -p "$TARGET_FULL_PATH/.claude/hooks"
+  for h in sura-session-start.sh sura-block-noise.sh; do
+    cp "$SCRIPT_DIR/hooks/$h" "$TARGET_FULL_PATH/.claude/hooks/$h"
+    HOOK_EXCLUDES+=(".claude/hooks/$h")
+  done
+  python3 "$SCRIPT_DIR/hooks/merge-settings.py" add "$settings"
+}
+
 # File rule milik tim (tanpa marker) dengan nama yang sama tidak pernah ditimpa.
 pick_rule_file() {
   local dir="$1" name="$2" fallback="$3"
@@ -314,8 +336,9 @@ else
 fi
 build_claude_payload > "$TARGET_FULL_PATH/$CLAUDE_FILE"
 install_claude_skills
+install_claude_hooks
 
-echo "  ✅ Configured AI Rules → $CLAUDE_FILE, .claude/skills/, $GEMINI_FILE, .cursor/rules/, .agents/rules/"
+echo "  ✅ Configured AI Rules → $CLAUDE_FILE, .claude/skills/, .claude/hooks/, $GEMINI_FILE, .cursor/rules/, .agents/rules/"
 
 # ------------------------------------------------------------------------------
 # 4. Protect Everything in Local Git Exclude (Zero Risk of PR Leakage)
@@ -328,7 +351,7 @@ if [ -d "$TARGET_FULL_PATH/.git/info" ]; then
     mv "$GIT_EXCLUDE.tmp" "$GIT_EXCLUDE"
     echo "  🧹 Exclude lama .agents/rules/ & .cursor/rules/ diganti per file"
   fi
-  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" "$AGENTS_FILE" "$CURSOR_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}"; do
+  for pattern in "sura-memory/" ".ignore" ".cursorignore" ".geminiignore" "$AGENTS_FILE" "$CURSOR_FILE" "$CLAUDE_FILE" "$GEMINI_FILE" "${SKILL_EXCLUDES[@]}" "${HOOK_EXCLUDES[@]}"; do
     if [ -n "$pattern" ] && ! grep -qxF "$pattern" "$GIT_EXCLUDE" 2>/dev/null; then
       echo "$pattern" >> "$GIT_EXCLUDE"
     fi
