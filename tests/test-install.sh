@@ -131,4 +131,15 @@ grep -qxF "custom_ignore_dir/" "$TEST_DIR_2/.ignore"
 [ -f "$TEST_DIR_2/GEMINI.local.md" ]
 
 echo "  ✅ [PASS] Team CLAUDE.md, GEMINI.md, and custom .ignore preserved safely"
+# 4. Superpowers skill names referenced in rules must exist (catches upstream renames)
+SP_DIR="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1)}"
+if [ -z "$SP_DIR" ] || [ ! -d "$SP_DIR" ]; then
+  echo "  ⏭️  [SKIP] Superpowers tidak ditemukan — cek nama skill dilewati"
+else
+  for s in $(grep -rhoE 'superpowers:[a-z-]+' "$REPO_ROOT/rules" | sort -u | cut -d: -f2); do
+    [ -f "$SP_DIR/$s/SKILL.md" ] || { echo "  ❌ [FAIL] Skill superpowers:$s tidak ada di $SP_DIR"; exit 1; }
+  done
+  echo "  ✅ [PASS] Semua referensi superpowers:* ada di $SP_DIR"
+fi
+
 echo "🎉 All installer tests passed (100%)!"
