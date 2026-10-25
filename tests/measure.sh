@@ -12,6 +12,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASELINE_REV="0a94e8a"   # monolithic rules, before the rules-split refactor
 TMP_BASE="$(mktemp -d)"
 trap 'rm -rf "$TMP_BASE"' EXIT
+export HOME="$TMP_BASE/home"   # installer menulis ~/.sura — jangan sentuh HOME asli
+mkdir -p "$HOME"
 
 fail() { echo "  ❌ [FAIL] $*"; exit 1; }
 

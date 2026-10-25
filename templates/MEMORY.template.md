@@ -7,9 +7,9 @@ Terakhir diperbarui: **{{DATE}}**
 
 ---
 
-## 👤 Developer & Project Profile
-- **Developer:** {{DEVELOPER_NAME}}
-- **Role:** Software Engineer
+## 🧭 Project Profile
+> Profil developer (nama, gaya belajar, preferensi) ada di `~/.sura/profile.md` — berlaku untuk semua proyek.
+
 - **Project Scope:** `{{PROJECT_SCOPE}}` *(fullstack / backend / frontend / apidef / cli-lib)*
 - **Testing Mode:** `{{TEST_MODE}}` *(strict-tdd / flexible / no-test)*
 - **Repo Condition:** `{{REPO_MODE}}` *(Existing Repo / Greenfield New Repo)*

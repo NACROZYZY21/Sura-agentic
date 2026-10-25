@@ -184,6 +184,16 @@ for tmpl in "${!TEMPLATE_MAP[@]}"; do
   fi
 done
 
+# Profil developer global — dibuat sekali, tidak pernah ditimpa (berlaku lintas proyek)
+SURA_HOME="$HOME/.sura"
+mkdir -p "$SURA_HOME"
+for global in profile lessons; do
+  if [ ! -f "$SURA_HOME/$global.md" ]; then
+    cp "$SCRIPT_DIR/templates/$global.template.md" "$SURA_HOME/$global.md"
+    echo "  ✅ Created: ~/.sura/$global.md (global, semua proyek)"
+  fi
+done
+
 if [ ! -f "$MEMORY_DIR/TASK_LOG.archive.md" ]; then
   printf "# Task Log Archive\n\n> Arsip task selesai yang dipindahkan saat menjalankan \`update sura\`.\n> Tidak dibaca otomatis oleh AI kecuali diminta eksplisit.\n" > "$MEMORY_DIR/TASK_LOG.archive.md"
   echo "  ✅ Created: sura-memory/TASK_LOG.archive.md"

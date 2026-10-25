@@ -29,6 +29,7 @@ Setiap diskusi proyek atau fitur harus bermuara pada dokumentasi aktif di `sura-
 1. **Selama mengerjakan Fitur A:** dokumen aktif ada di `TRD/PRD.md` & `TRD/TRD.md`.
 2. **Saat Fitur A selesai (`update sura`):**
    - Tandai task selesai di `TASK_LOG.md` & `MEMORY.md` (nomor PR + *lessons learned*).
+   - Untuk tiap *lesson learned*, tanya developer: **berlaku umum atau khusus proyek ini?** Khusus proyek → `sura-memory/lessons/`. Umum → tulis ulang tanpa nama perusahaan, endpoint internal, token, atau detail rahasia, lalu tambahkan ke `~/.sura/lessons.md` **hanya setelah persetujuan developer**.
    - `TASK_LOG.md` hanya memuat task aktif + maksimal 2 task selesai terakhir; entri lebih lama pindah ke `TASK_LOG.archive.md`.
 3. **Saat masuk ke Fitur B:**
    - Pindahkan `TRD/PRD.md`, `TRD/TRD.md`, dan file `designs/` milik Fitur A ke `sura-memory/TRD/archive/YYYY-MM-DD-<slug>/`.

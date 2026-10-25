@@ -79,4 +79,14 @@ grep -q 'skills/sura-prd-trd' README.md || fail "README belum menjelaskan skills
 ! grep -n 'rules/superpowers.md\|superpowers.md  ' README.md || fail "README masih menyebut rules/superpowers.md"
 pass "Template & README mengikuti arsip PRD/TRD dan skill on-demand"
 
+# 6. Global developer profile layer (~/.sura)
+for t in templates/profile.template.md templates/lessons.template.md; do
+  [ -f "$t" ] || fail "$t tidak ada"
+done
+grep -qF '~/.sura/profile.md' rules/core/RULES.md || fail "core tidak memuat ~/.sura/profile.md"
+grep -qF '~/.sura/lessons.md' skills/sura-prd-trd/SKILL.md || fail "update sura tidak mempromosikan pelajaran ke ~/.sura/lessons.md"
+grep -qi 'persetujuan' skills/sura-prd-trd/SKILL.md || fail "promosi pelajaran umum harus lewat persetujuan developer"
+! grep -n 'DEVELOPER_NAME' templates/MEMORY.template.md || fail "MEMORY.template masih memuat profil developer"
+pass "Lapis profil global ~/.sura (profil, pelajaran umum lewat persetujuan)"
+
 echo "🎉 All content lint passed!"

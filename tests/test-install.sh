@@ -10,6 +10,10 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALLER="$REPO_ROOT/install.sh"
 TMP_BASE="$(mktemp -d)"
 trap 'rm -rf "$TMP_BASE"' EXIT
+# Installer menulis ke ~/.sura — jangan pernah sentuh HOME asli developer
+REAL_HOME="$HOME"
+export HOME="$TMP_BASE/home"
+mkdir -p "$HOME"
 
 echo "🧪 Running Sura-agentic Installer Verification Suite..."
 
@@ -64,6 +68,14 @@ grep -q "PROJECT_SCOPE=backend" "$TEST_DIR_1/CLAUDE.md"
 grep -q "TEST_MODE=no-test" "$TEST_DIR_1/CLAUDE.md"
 grep -q "\`backend\`" "$TEST_DIR_1/sura-memory/CONVENTIONS.md"
 grep -q "\`no-test\`" "$TEST_DIR_1/sura-memory/CONVENTIONS.md"
+
+# Verify global developer profile (~/.sura) — created once, never overwritten
+[ -f "$HOME/.sura/profile.md" ] || { echo "  ❌ [FAIL] ~/.sura/profile.md tidak dibuat"; exit 1; }
+[ -f "$HOME/.sura/lessons.md" ] || { echo "  ❌ [FAIL] ~/.sura/lessons.md tidak dibuat"; exit 1; }
+if grep -q '{{DEVELOPER_NAME}}' "$TEST_DIR_1/sura-memory/MEMORY.md"; then echo "  ❌ [FAIL] MEMORY.md masih memuat profil developer"; exit 1; fi
+grep -qF '~/.sura/profile.md' "$TEST_DIR_1/sura-memory/MEMORY.md" || { echo "  ❌ [FAIL] MEMORY.md tidak menunjuk ke ~/.sura/profile.md"; exit 1; }
+echo "custom profile" >> "$HOME/.sura/profile.md"
+echo "custom lesson" >> "$HOME/.sura/lessons.md"
 
 # Verify slim Claude payload
 [ "$(wc -c < "$TEST_DIR_1/CLAUDE.md")" -le 6144 ] || { echo "  ❌ [FAIL] CLAUDE.md > 6144 byte ($(wc -c < "$TEST_DIR_1/CLAUDE.md"))"; exit 1; }
@@ -120,6 +132,8 @@ for pat in '.cursor/rules/' '.agents/rules/'; do
 done
 [ "$(wc -l < "$TEST_DIR_1/CLAUDE.md")" -le 80 ] || { echo "  ❌ [FAIL] re-run tidak meramping CLAUDE.md lama"; exit 1; }
 [ "$(grep -cxF 'sura-memory/' "$TEST_DIR_1/.git/info/exclude")" -eq 1 ] || { echo "  ❌ [FAIL] exclude dobel"; exit 1; }
+grep -qxF "custom profile" "$HOME/.sura/profile.md" || { echo "  ❌ [FAIL] ~/.sura/profile.md tertimpa saat re-run"; exit 1; }
+grep -qxF "custom lesson" "$HOME/.sura/lessons.md" || { echo "  ❌ [FAIL] ~/.sura/lessons.md tertimpa saat re-run"; exit 1; }
 echo "  ✅ [PASS] Re-run upgrade dari payload lama: CLAUDE.md ramping, exclude tidak dobel"
 
 # 3. Test Case 2: Team CLAUDE.md / GEMINI.md & Custom .ignore Preservation
@@ -156,7 +170,7 @@ grep -qxF "custom_ignore_dir/" "$TEST_DIR_2/.ignore"
 
 echo "  ✅ [PASS] Team CLAUDE.md, GEMINI.md, and custom .ignore preserved safely"
 # 4. Superpowers skill names referenced in rules must exist (catches upstream renames)
-SP_DIR="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1 || true)}"
+SP_DIR="${SUPERPOWERS_SKILLS_DIR:-$(ls -d "$REAL_HOME"/.claude/plugins/cache/*/superpowers/*/skills 2>/dev/null | sort -V | tail -1 || true)}"
 if [ -z "$SP_DIR" ] || [ ! -d "$SP_DIR" ]; then
   echo "  ⏭️  [SKIP] Superpowers tidak ditemukan — cek nama skill dilewati"
 else

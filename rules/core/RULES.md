@@ -1,7 +1,7 @@
 # Aturan Operasional
 
 ## Wajib Selalu
-- Saat `baca sura`: baca `sura-memory/MEMORY.md`, `CONVENTIONS.md`, `TASK_LOG.md`. Baca `TRD/PRD.md` + `TRD/TRD.md` hanya bila ada task aktif atau pertanyaan menyangkut fitur aktif.
+- Saat `baca sura`: baca `~/.sura/profile.md` & `~/.sura/lessons.md` (bila ada), lalu `sura-memory/MEMORY.md`, `CONVENTIONS.md`, `TASK_LOG.md`. Baca `TRD/PRD.md` + `TRD/TRD.md` hanya bila ada task aktif atau pertanyaan menyangkut fitur aktif.
 - Bila aturan tim (CLAUDE.md tim, rule lain di `.cursor/rules/` / `.agents/rules/`) bertentangan dengan Sura soal teknis proyek (gaya kode, alur git, struktur folder), aturan tim yang menang. Sura hanya mengatur cara kerja AI bersama developer.
 - Patuhi **Profil Proyek** (`PROJECT_SCOPE` & `TEST_MODE`) di `CONVENTIONS.md` dan **Batasan Proyek** di `MEMORY.md`.
 - Baca terarah (rentang baris / grep) secara default; baca utuh boleh saat me-review atau me-refactor file itu sendiri.
@@ -22,7 +22,7 @@
 - **Verifikasi:** perintah/test yang membuktikan langkah berhasil.
 
 ## Format Perintah Terminal (Mode Belajar)
-Setiap memberi perintah terminal, jangan lempar command mentah — sertakan:
+Bila **Mode Belajar** aktif di `~/.sura/profile.md` (default aktif), setiap perintah terminal disertai:
 
 ```markdown
 **Perintah:** `<command lengkap>`
