@@ -60,7 +60,14 @@ Lalu di tiap proyek, cukup ketik di Claude Code:
 | `/sura:build-trd` | Dari PRD yang sudah terisi → tulis `TRD/TRD.md` (bagaimana); setiap `US-xx` wajib punya task. Ditolak bila PRD masih template |
 | `/sura:execute [task]` | Kerjakan task TRD satu per satu: Tujuan → Lokasi → Arahan → Verifikasi, tunggu "lanjut", tutup dengan bukti. Ditolak bila TRD masih template |
 
-Update: `claude plugin update sura@sura-agentic`. Cabut: `claude plugin uninstall sura@sura-agentic` (lalu `install.sh --uninstall` untuk membersihkan `.ignore`/exclude di proyek).
+Update ke versi terbaru di GitHub (cukup sekali per laptop, semua proyek ikut; buka sesi baru setelahnya):
+
+```bash
+claude plugin marketplace update sura-agentic   # tarik daftar versi terbaru dari GitHub
+claude plugin update sura@sura-agentic          # ganti salinan plugin di cache
+```
+
+Cabut: `claude plugin uninstall sura@sura-agentic` (lalu `install.sh --uninstall` untuk membersihkan `.ignore`/exclude di proyek).
 
 Gemini CLI, Cursor, dan Antigravity tetap memakai `install.sh` di bawah.
 
