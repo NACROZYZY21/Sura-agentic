@@ -1,6 +1,6 @@
 ---
 name: sura-graphify
-description: Gunakan saat repo memiliki graphify-out/ atau MCP graphify aktif dan kamu perlu memetakan alur, dependensi, atau blast radius sebelum mengubah kode.
+description: Gunakan saat repo memiliki graphify-out/ atau MCP graphify aktif dan kamu perlu memetakan alur, dependensi, siapa memanggil apa, atau dampak/blast radius sebelum mengubah atau me-refactor kode.
 ---
 
 # Graphify Knowledge Graph Protocol

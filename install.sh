@@ -441,7 +441,8 @@ build_claude_payload() {
   build_core_payload
   printf "\n"
   cat "$SCRIPT_DIR/rules/claude/superpowers-overrides.md"
-  printf "\n> Protokol detail (sura-prd-trd, sura-project-profile, sura-graphify) dimuat otomatis sebagai skill dari .claude/skills/.\n"
+  printf "\n"
+  cat "$SCRIPT_DIR/rules/claude/skill-triggers.md"
 }
 
 build_inline_payload() {

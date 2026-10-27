@@ -58,6 +58,7 @@ max_lines rules/core/SOUL.md 25
 max_lines rules/core/RULES.md 45
 max_lines rules/claude/superpowers-overrides.md 15
 max_lines rules/inline/workflow-checklist.md 15
+max_lines rules/claude/skill-triggers.md 3
 pass "Core ramping & varian per tool ada dalam batas baris"
 
 ! grep -rn 'superpowers:' rules/core rules/inline || fail "superpowers: hanya boleh di rules/claude/"
@@ -71,6 +72,14 @@ grep -q 'review' rules/core/RULES.md && grep -q 'refactor' rules/core/RULES.md |
 ! grep -rniE '(hapus|timpa|replace)[^.]*(PRD|TRD)' rules/ || fail "rules/ masih menyuruh hapus/timpa PRD/TRD"
 grep -qF 'build prd' rules/claude/superpowers-overrides.md && grep -qF 'superpowers:brainstorming' rules/claude/superpowers-overrides.md \
   || fail "build prd harus memakai superpowers:brainstorming di Claude Code"
+for n in sura-prd-trd sura-project-profile sura-graphify; do
+  grep -qF "$n" rules/claude/skill-triggers.md || fail "skill-triggers.md tidak menyebut $n"
+done
+grep -qF 'panggil skill' rules/claude/skill-triggers.md || fail "skill-triggers.md harus berupa perintah tegas"
+desc() { awk -F': ' '/^description:/ {print $2; exit}' "skills/$1/SKILL.md"; }
+grep -qF 'fitur baru' <<<"$(desc sura-prd-trd)" || fail "deskripsi sura-prd-trd tidak memicu saat membahas fitur baru"
+grep -qF 'test' <<<"$(desc sura-project-profile)" || fail "deskripsi sura-project-profile tidak memicu saat memilih test"
+grep -qF 'dampak' <<<"$(desc sura-graphify)" || fail "deskripsi sura-graphify tidak memicu saat menilai dampak perubahan"
 pass "Override superpowers lengkap, baca terarah default, arsip PRD/TRD"
 
 # 5. Templates & README follow the archive + on-demand skill model

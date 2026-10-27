@@ -1,6 +1,6 @@
 ---
 name: sura-project-profile
-description: Gunakan saat menyusun desain/TRD, memilih strategi test, atau menyentuh repo sibling — berisi adaptasi PROJECT_SCOPE, TEST_MODE, multi-repo, dan peta folder sura-memory/.
+description: Gunakan saat menyusun desain/TRD, memilih strategi test atau menulis test, menentukan apa yang dikerjakan sesuai scope proyek, atau menyentuh repo sibling — berisi adaptasi PROJECT_SCOPE, TEST_MODE, multi-repo, dan peta folder sura-memory/.
 ---
 
 # Profil Proyek & Struktur Folder Adaptif

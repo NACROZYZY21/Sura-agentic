@@ -65,7 +65,7 @@ run_start() { HOME="$TMP_BASE/home" CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJE
 
 [ -z "$(run_start "$TMP_BASE/plain")" ] || fail "plugin harus diam di proyek tanpa sura-memory/"
 OUT="$(run_start "$TMP_BASE/proj")"
-for want in '# Sura Protocol' '# Aturan Operasional' 'Override Superpowers' 'PROJECT_SCOPE=backend' 'TEST_MODE=no-test'; do
+for want in '# Sura Protocol' '# Aturan Operasional' 'Override Superpowers' 'panggil skill' 'PROJECT_SCOPE=backend' 'TEST_MODE=no-test'; do
   grep -qF "$want" <<<"$OUT" || fail "SessionStart mode plugin tidak memuat: $want"
 done
 [ "$(printf '%s' "$OUT" | wc -c)" -le 12000 ] || fail "SessionStart mode plugin melebihi 12000 byte"

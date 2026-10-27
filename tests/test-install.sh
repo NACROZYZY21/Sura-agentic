@@ -85,6 +85,8 @@ echo "custom lesson" >> "$HOME/.sura/lessons.md"
 [ "$(wc -c < "$TEST_DIR_1/CLAUDE.md")" -le 6144 ] || { echo "  ❌ [FAIL] CLAUDE.md > 6144 byte ($(wc -c < "$TEST_DIR_1/CLAUDE.md"))"; exit 1; }
 [ "$(wc -l < "$TEST_DIR_1/CLAUDE.md")" -le 80 ] || { echo "  ❌ [FAIL] CLAUDE.md > 80 baris"; exit 1; }
 
+grep -qF 'panggil skill' "$TEST_DIR_1/CLAUDE.md" || { echo "  ❌ [FAIL] CLAUDE.md tidak memuat pemicu skill sura-*"; exit 1; }
+
 # Verify Claude skills installed verbatim
 for n in sura-prd-trd sura-project-profile sura-graphify; do
   cmp -s "$REPO_ROOT/skills/$n/SKILL.md" "$TEST_DIR_1/.claude/skills/$n/SKILL.md" \
@@ -95,6 +97,7 @@ done
 grep -q 'superpowers:' "$TEST_DIR_1/CLAUDE.md"
 for f in GEMINI.md .agents/rules/agentic-sop.md .cursor/rules/agentic-sop.mdc; do
   if grep -q 'superpowers:' "$TEST_DIR_1/$f"; then echo "  ❌ [FAIL] $f menyebut superpowers:"; exit 1; fi
+  if grep -qF 'panggil skill' "$TEST_DIR_1/$f"; then echo "  ❌ [FAIL] $f (tanpa mekanisme skill) memuat pemicu skill"; exit 1; fi
 done
 for marker in 'Siklus Hidup "Satu Fitur Aktif"' 'Peta Folder `sura-memory/`' 'Graphify Knowledge Graph Protocol'; do
   grep -qF "$marker" "$TEST_DIR_1/GEMINI.md" || { echo "  ❌ [FAIL] isi skill tidak ter-inline: $marker"; exit 1; }

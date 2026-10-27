@@ -1,6 +1,6 @@
 ---
 name: sura-prd-trd
-description: Gunakan saat developer mengetik "baca sura" atau "update sura", saat menulis/memperbarui sura-memory/TRD/PRD.md atau TRD.md, atau saat berpindah dari satu fitur/proyek ke fitur/proyek berikutnya.
+description: Gunakan saat developer mengetik "baca sura" atau "update sura", membahas fitur baru atau perubahan perilaku, merancang PRD/TRD/user story, menulis sura-memory/TRD/PRD.md atau TRD.md, atau berpindah dari satu fitur/proyek ke fitur/proyek berikutnya.
 ---
 
 # Protokol PRD, TRD, & Siklus Hidup Fitur

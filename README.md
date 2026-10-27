@@ -27,7 +27,7 @@ Bekerja bersama AI coding assistant (Antigravity, Gemini CLI, Claude Code, Curso
 | 🎯 **Adaptive Project Profile** | Mendukung pilihan Scope (`fullstack`, `backend`, `frontend`, `apidef`, `cli-lib`) & Mode Test (`strict-tdd`, `flexible`, `no-test`) | Aturan AI, template TRD, dan gerbang verifikasi otomatis menyesuaikan jenis proyek (pakai file test maupun tanpa test). |
 | 🗺️ **Graphify Engine** | Integrasi AST knowledge graph (`graphify-out/`) untuk analisis *Blast Radius* | AI memetakan relasi komponen dan file yang wajib/dilarang disentuh tanpa membaca puluhan file mentah. |
 | ⚡ **Superpowers Workflow** | Orkestrasi *brainstorming*, *TDD*, *systematic-debugging*, & *verification-before-completion* | Mencegah halusinasi dan memastikan setiap klaim selesai dibuktikan dengan output terminal nyata. |
-| 🛡️ **Zero Token Waste & Git Safe** | Core rules ramping (~6.0 KB di `CLAUDE.md`) + protokol detail dimuat sebagai skill hanya saat dipakai + filter `.ignore` universal + proteksi `.git/info/exclude` | Biaya awal sesi kecil, AI tidak membaca sampah token, dan **100% aman dari kebocoran ke PR/commit tim**. |
+| 🛡️ **Zero Token Waste & Git Safe** | Core rules ramping (~6.1 KB di `CLAUDE.md`) + protokol detail dimuat sebagai skill hanya saat dipakai + filter `.ignore` universal + proteksi `.git/info/exclude` | Biaya awal sesi kecil, AI tidak membaca sampah token, dan **100% aman dari kebocoran ke PR/commit tim**. |
 
 ---
 
@@ -138,11 +138,11 @@ Diukur oleh `bash tests/measure.sh` dengan memasang versi sebelum refactor (`0a9
 <!-- MEASURE:START -->
 | Dibaca AI di awal sesi | Sebelum refactor | Sekarang |
 |---|---|---|
-| `CLAUDE.md` (selalu dimuat) | 21.3 KB | 6.0 KB |
+| `CLAUDE.md` (selalu dimuat) | 21.3 KB | 6.1 KB |
 | Hook `SessionStart` (otomatis) | — | 2.2 KB |
 | File wajib saat `baca sura` | 5 file, 13.0 KB | 5 file (2 global + 3 proyek), 7.2 KB |
-| **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **15.4 KB ≈ 3855 token** |
-| Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 8.0 KB |
+| **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **15.5 KB ≈ 3868 token** |
+| Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 8.2 KB |
 | `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 15.3 KB |
 <!-- MEASURE:END -->
 

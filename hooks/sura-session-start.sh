@@ -34,6 +34,8 @@ section() {
     echo
     cat "$CLAUDE_PLUGIN_ROOT/rules/claude/superpowers-overrides.md"
     echo
+    cat "$CLAUDE_PLUGIN_ROOT/rules/claude/skill-triggers.md"
+    echo
   fi
   echo "# Konteks Sura (otomatis dari hook SessionStart)"
   for g in profile lessons; do
