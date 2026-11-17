@@ -6,6 +6,7 @@ argument-hint: "[nama fitur]"
 Jalankan langkah **`build prd`** dari skill `sura-prd-trd` (bagian "Alur `build prd` → `build trd` → `eksekusi`").
 
 - Bila `sura-memory/` belum ada, sarankan `/sura:init` dulu.
+- Bila developer ternyata sudah memegang PRD jadi (file PDF atau MD), jangan mulai dari nol — arahkan ke `/sura:build-trd` dengan file itu.
 - Fitur yang ingin dibahas developer (boleh kosong, tanyakan): `$ARGUMENTS`
 - Bila PRD fitur sebelumnya sudah selesai, arsipkan dulu ke `sura-memory/TRD/archive/YYYY-MM-DD-<slug>/` — jangan hapus.
 - Tanya satu hal per giliran. Tulis PRD hanya setelah developer menyetujui ringkasannya. Beri nomor user story `US-01`, `US-02`, ...

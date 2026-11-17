@@ -43,6 +43,8 @@ done
 grep -qF '${CLAUDE_PLUGIN_ROOT}/install.sh' commands/init.md || fail "/sura:init harus menjalankan installer plugin"
 grep -qF -- '--plugin' commands/init.md || fail "/sura:init harus memakai mode --plugin"
 grep -qF '/sura:build-prd' commands/build-trd.md || fail "/sura:build-trd harus menolak bila PRD belum ada (arahkan ke /sura:build-prd)"
+grep -qi 'PRD kiriman' commands/build-trd.md || fail "/sura:build-trd harus menerima PRD kiriman lewat argumen"
+grep -qi 'PDF' commands/build-prd.md && grep -qF '/sura:build-trd' commands/build-prd.md || fail "/sura:build-prd harus mengarahkan ke /sura:build-trd bila developer sudah punya PRD"
 grep -qF '/sura:build-trd' commands/execute.md || fail "/sura:execute harus menolak bila TRD belum ada (arahkan ke /sura:build-trd)"
 grep -qF 'lanjut' commands/execute.md || fail "/sura:execute harus menunggu 'lanjut' sebelum mengubah file"
 grep -qF 'graphify update .' commands/init.md || fail "/sura:init harus menawarkan pembuatan index Graphify"
