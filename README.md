@@ -150,7 +150,7 @@ Diukur oleh `bash tests/measure.sh` dengan memasang versi sebelum refactor (`0a9
 | File wajib saat `baca sura` | 5 file, 13.0 KB | 5 file (2 global + 3 proyek), 7.2 KB |
 | **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **15.5 KB ≈ 3876 token** |
 | Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 8.3 KB |
-| `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 16.2 KB |
+| `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 16.5 KB |
 <!-- MEASURE:END -->
 
 Tabel ini dicek otomatis (`bash tests/measure.sh --check`): kalau payload berubah tapi tabel tidak diperbarui, pengecekan gagal.

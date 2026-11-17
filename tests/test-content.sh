@@ -112,6 +112,12 @@ grep -qF 'Pertanyaan Terbuka' skills/sura-prd-trd/SKILL.md || fail "impor PRD ha
 grep -qF 'Belum ditentukan' skills/sura-prd-trd/SKILL.md || fail "bagian PRD kiriman yang kosong harus ditulis 'Belum ditentukan'"
 grep -qi 'pdf' skills/sura-prd-trd/SKILL.md || fail "impor PRD harus menyebut PDF (dan cadangan tempel bila tak terbaca)"
 grep -qi 'PRD kiriman' rules/core/SOUL.md || fail "SOUL tidak menyebut PRD kiriman pada kata kunci build trd"
+for rule in 'jangan menimpa' 'jangan menebak' 'menempel teksnya' 'bukan dikarang' 'Tanpa PRD kiriman'; do
+  grep -qF "$rule" skills/sura-prd-trd/SKILL.md || fail "aturan impor PRD hilang dari skill: '$rule'"
+done
+grep -qF '`Belum ditentukan` hasil impor bukan template' skills/sura-prd-trd/SKILL.md || fail "gerbang 'masih template' harus menerima PRD hasil impor yang memuat 'Belum ditentukan'"
+grep -qF 'tanpa satu pun user story' skills/sura-prd-trd/SKILL.md || fail "PRD kiriman tanpa user story harus ditolak impor (arahkan ke build prd)"
+grep -qF 'Dengan atau tanpa impor' skills/sura-prd-trd/SKILL.md || fail "pemetaan kode & cakupan user story harus berlaku juga setelah impor PRD kiriman"
 pass "Alur build prd → build trd → eksekusi ada di core & skill"
 
 # 7. No employer branding in the repo
