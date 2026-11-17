@@ -148,9 +148,9 @@ Diukur oleh `bash tests/measure.sh` dengan memasang versi sebelum refactor (`0a9
 | `CLAUDE.md` (selalu dimuat) | 21.3 KB | 6.1 KB |
 | Hook `SessionStart` (otomatis) | — | 2.2 KB |
 | File wajib saat `baca sura` | 5 file, 13.0 KB | 5 file (2 global + 3 proyek), 7.2 KB |
-| **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **15.5 KB ≈ 3868 token** |
-| Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 8.2 KB |
-| `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 15.3 KB |
+| **Total awal sesi (Claude Code)** | **34.3 KB ≈ 8567 token** | **15.5 KB ≈ 3876 token** |
+| Mode plugin: hook `SessionStart` (menggantikan `CLAUDE.md` + hook di atas) | — | 8.3 KB |
+| `GEMINI.md` / Cursor / Antigravity (selalu dimuat) | 21.3 KB | 16.2 KB |
 <!-- MEASURE:END -->
 
 Tabel ini dicek otomatis (`bash tests/measure.sh --check`): kalau payload berubah tapi tabel tidak diperbarui, pengecekan gagal.
@@ -163,7 +163,7 @@ Tabel ini dicek otomatis (`bash tests/measure.sh --check`): kalau payload beruba
 |---|---|
 | **`"baca sura"`** | Membaca `sura-memory/`, memeriksa profil proyek, menyalakan **Graphify** & **Superpowers Brainstorming**, berdiskusi mematangkan kebutuhan, lalu **otomatis membuat `PRD` & `TRD`** di `sura-memory/TRD/` sebelum mulai ngoding. |
 | **`"update sura"`** *(atau `/retro`)* | Menyinkronkan hasil akhir ke `PRD` & `TRD`, menandai task `Done` di `TASK_LOG.md`, mengarsipkan task lama ke `TASK_LOG.archive.md`, mencatat post-mortem di `lessons/`, dan menggeser antrean task di `MEMORY.md`. |
-| **`"build prd"`** → **`"build trd"`** → **`"eksekusi"`** | Alur PRD → TRD → implementasi bertahap (versi teks dari `/sura:build-prd`, `/sura:build-trd`, `/sura:execute`; berlaku juga di Gemini, Cursor, Antigravity, Replit). |
+| **`"build prd"`** → **`"build trd"`** → **`"eksekusi"`** | Alur PRD → TRD → implementasi bertahap. Belum ada PRD → `build prd` (ditanya dulu). Sudah dikasih PRD → `build trd` + file PRD-nya (PDF/MD). Lalu `eksekusi`. (Versi teks dari `/sura:build-prd`, `/sura:build-trd`, `/sura:execute`; berlaku juga di Gemini, Cursor, Antigravity, Replit). |
 | **`/design`** | Menyusun dokumen teknis 10-section mengacu pada `sura-memory/DESIGN_BEFORE_CODE.md` (disimpan ke `sura-memory/designs/`). |
 | **`/verify`** | Menjalankan gerbang pemeriksaan Pre-PR (linter, formatting, cek dependency, dan test/build sesuai `TEST_MODE`) dengan vonis tegas: **READY TO PR** atau **NOT READY**. |
 | **`/review-pr <nomor>`** | Melakukan review PR mendalam secara *read-only* mengacu pada `PR_REVIEW_PLAYBOOK.md` dan menyimpan laporannya di `sura-memory/reviews/`. |
