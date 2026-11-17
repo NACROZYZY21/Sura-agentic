@@ -15,8 +15,15 @@ Setiap diskusi proyek atau fitur harus bermuara pada dokumentasi aktif di `sura-
 
 ## 1b. Alur `build prd` → `build trd` → `eksekusi`
 Dokumen dianggap **masih template** bila masih memuat placeholder `{{...}}` atau bagian intinya kosong.
+**Pilih jalur:** developer membawa PRD jadi → `build trd`; belum ada PRD → `build prd`; TRD sudah terisi → `eksekusi`.
 1. **`build prd`:** bila PRD fitur lama sudah selesai, arsipkan dulu (bagian 3). Diskusi satu pertanyaan per giliran, lalu tulis PRD (struktur bagian 4) setelah disetujui. Beri nomor setiap user story: `US-01`, `US-02`, ...
-2. **`build trd`:** tolak bila PRD masih template — arahkan ke `build prd`. Petakan kode (Mode A/B, bagian 2), tulis TRD (struktur bagian 5). Setiap user story PRD wajib muncul di TRD: kolom *User Story* di tabel Tasks Breakdown menyebut `US-xx`; user story tanpa task = TRD belum selesai.
+2. **`build trd`:** bila developer menyertakan **PRD kiriman** (file `.pdf`/`.md` buatan orang lain), impor dulu:
+   - Baca file itu tanpa mengubah atau memindahkannya. PDF tak terbaca → minta developer menempel teksnya; jangan menebak isi.
+   - Bila `PRD.md` berisi fitur lain, tanya dulu lalu arsipkan (bagian 3) — jangan menimpa.
+   - Salin ke struktur bagian 4 tanpa mengubah maksud, nomori `US-01`, `US-02`, ... Yang tidak ada di PRD asli ditulis `Belum ditentukan` (bukan dikarang) dan masuk daftar **Pertanyaan Terbuka** di bagian Reference, bersama nama file asal & tanggal impor.
+   - Tanyakan satu per giliran hanya pertanyaan terbuka yang mengubah isi TRD. Tulis `PRD.md` setelah developer menyetujui ringkasan impor.
+
+   Tanpa PRD kiriman: tolak bila PRD masih template — arahkan ke `build prd`. Petakan kode (Mode A/B, bagian 2), tulis TRD (struktur bagian 5). Setiap user story PRD wajib muncul di TRD: kolom *User Story* di tabel Tasks Breakdown menyebut `US-xx`; user story tanpa task = TRD belum selesai.
 3. **`eksekusi`:** tolak bila TRD masih template — arahkan ke `build trd`. Ambil task berikutnya yang belum `Done` (atau nomor yang diminta), sajikan Tujuan → Lokasi → Arahan → Verifikasi, tunggu "lanjut", kerjakan, verifikasi sesuai `TEST_MODE`, lalu tandai status task di TRD & `TASK_LOG.md`. Satu task per giliran.
 
 ## 2. Dua Mode Pembuatan PRD & TRD

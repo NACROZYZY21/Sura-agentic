@@ -107,6 +107,11 @@ done
 grep -qF 'US-' skills/sura-prd-trd/SKILL.md && grep -qi 'setiap user story' skills/sura-prd-trd/SKILL.md || fail "TRD harus menelusuri setiap user story PRD"
 grep -qF '{{' skills/sura-prd-trd/SKILL.md || fail "gerbang 'masih template' (placeholder {{) tidak dijelaskan"
 grep -qF '| **Task** | **User Story** |' templates/TRD/TRD.template.md || fail "tabel Tasks di TRD.template belum punya kolom User Story"
+grep -qi 'PRD kiriman' skills/sura-prd-trd/SKILL.md || fail "build trd belum menerima PRD kiriman (PDF/MD)"
+grep -qF 'Pertanyaan Terbuka' skills/sura-prd-trd/SKILL.md || fail "impor PRD harus mencatat Pertanyaan Terbuka, bukan mengarang"
+grep -qF 'Belum ditentukan' skills/sura-prd-trd/SKILL.md || fail "bagian PRD kiriman yang kosong harus ditulis 'Belum ditentukan'"
+grep -qi 'pdf' skills/sura-prd-trd/SKILL.md || fail "impor PRD harus menyebut PDF (dan cadangan tempel bila tak terbaca)"
+grep -qi 'PRD kiriman' rules/core/SOUL.md || fail "SOUL tidak menyebut PRD kiriman pada kata kunci build trd"
 pass "Alur build prd → build trd → eksekusi ada di core & skill"
 
 # 7. No employer branding in the repo
